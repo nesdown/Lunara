@@ -1,6 +1,7 @@
 import Foundation
 import os
 import SwiftUI
+import Models
 
 // Model for dream content fetched from OpenAI
 public struct DreamContent: Codable, Identifiable {
@@ -108,9 +109,14 @@ public enum DreamContentType: String, CaseIterable {
 }
 
 class OpenAIService {
-    private let apiKey = "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" // Replace with your actual API key
+    private let apiKey: String
     private let baseURL = "https://api.openai.com/v1/chat/completions"
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.lunara", category: "DreamService")
+    
+    init() {
+        // Get the API key from environment configuration
+        self.apiKey = EnvironmentConfig.openAIApiKey
+    }
     
     private func log(_ message: String) {
         // Use both NSLog and os.Logger for maximum visibility
