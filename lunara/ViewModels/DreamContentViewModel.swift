@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Models
 
 // Add our DreamContent model extension
 extension DreamContent: @unchecked Sendable {}

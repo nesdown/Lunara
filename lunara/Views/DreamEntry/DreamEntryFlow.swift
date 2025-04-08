@@ -45,7 +45,7 @@ struct DreamEntryFlow: View {
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                         .frame(width: 32, height: 32)
                         .background(
                             Circle()
@@ -249,135 +249,163 @@ struct DreamDescriptionView: View {
     @Binding var dreamDescription: String
     let onNext: () -> Void
     @State private var isEditing = false
+    @FocusState private var isTextFieldFocused: Bool
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
     
     var body: some View {
-        VStack(spacing: 32) {
-            VStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(lightPurple)
-                        .frame(width: 80, height: 80)
-                    Image(systemName: "cloud.moon.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(primaryPurple)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 32) {
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(lightPurple)
+                            .frame(width: 80, height: 80)
+                        Image(systemName: "cloud.moon.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(primaryPurple)
+                    }
+                    .padding(.bottom, 8)
+                    .appearanceAnimation()
+                    
+                    Text("WHAT WAS YOUR DREAM ABOUT?")
+                        .font(.system(size: 24, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.primary)
+                        .appearanceAnimation(delay: 0.05)
+                    
+                    Text("Share the details of your dream experience")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .appearanceAnimation(delay: 0.1)
                 }
-                .padding(.bottom, 8)
-                .appearanceAnimation()
+                .padding(.top, 20)
                 
-                Text("WHAT WAS YOUR DREAM ABOUT?")
-                    .font(.system(size: 24, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.primary)
-                    .appearanceAnimation(delay: 0.05)
-                
-                Text("Share the details of your dream experience")
-                    .font(.system(size: 16))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .appearanceAnimation(delay: 0.1)
-            }
-            .padding(.top, 20)
-            
-            VStack(spacing: 16) {
-                VStack(spacing: 0) {
-                    ZStack(alignment: .bottomTrailing) {
-                        TextEditor(text: $dreamDescription)
-                            .frame(height: 180)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(UIColor.secondarySystemBackground))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .strokeBorder(primaryPurple.opacity(isEditing ? 0.3 : 0.15), lineWidth: 1.5)
-                            )
-                            .overlay(
-                                Group {
-                                    if dreamDescription.isEmpty {
-                                        Text("e.g. flying over the city on a beautiful night...")
-                                            .foregroundColor(.secondary)
-                                            .padding(.horizontal, 24)
-                                            .padding(.vertical, 24)
+                VStack(spacing: 16) {
+                    VStack(spacing: 0) {
+                        ZStack(alignment: .bottomTrailing) {
+                            TextEditor(text: $dreamDescription)
+                                .frame(height: 180)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color(UIColor.secondarySystemBackground))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .strokeBorder(primaryPurple.opacity(isEditing ? 0.3 : 0.15), lineWidth: 1.5)
+                                )
+                                .overlay(
+                                    Group {
+                                        if dreamDescription.isEmpty {
+                                            Text("e.g. flying over the city on a beautiful night...")
+                                                .foregroundColor(.secondary)
+                                                .padding(.horizontal, 24)
+                                                .padding(.vertical, 24)
+                                                .onTapGesture {
+                                                    isTextFieldFocused = true
+                                                }
+                                        }
+                                    },
+                                    alignment: .topLeading
+                                )
+                                .focused($isTextFieldFocused)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Spacer()
+                                        Button("Done") {
+                                            isTextFieldFocused = false
+                                        }
+                                        .foregroundColor(primaryPurple)
+                                        .font(.system(size: 16, weight: .semibold))
                                     }
-                                },
-                                alignment: .topLeading
-                            )
-                            .onChange(of: dreamDescription) { _, _ in
-                                isEditing = true
-                                // Reset after animation duration
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    isEditing = false
                                 }
+                                .onTapGesture {
+                                    isTextFieldFocused = true
+                                }
+                                .onChange(of: dreamDescription) { _, _ in
+                                    isEditing = true
+                                    // Reset after animation duration
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        isEditing = false
+                                    }
+                                }
+                                .animation(.easeInOut(duration: 0.3), value: isEditing)
+                            
+                            VoiceInputButton(color: primaryPurple) { text in
+                                if dreamDescription.isEmpty {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        dreamDescription = text
+                                    }
+                                } else {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        dreamDescription += " " + text
+                                    }
+                                }
+                                // Add haptic feedback when text is updated
+                                HapticManager.shared.success()
+                                
+                                // Unfocus the text field after speech input
+                                isTextFieldFocused = false
                             }
-                            .animation(.easeInOut(duration: 0.3), value: isEditing)
-                        
-                        VoiceInputButton(color: primaryPurple) { text in
-                            if dreamDescription.isEmpty {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    dreamDescription = text
-                                }
-                            } else {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    dreamDescription += " " + text
-                                }
-                            }
-                            // Add haptic feedback when text is updated
-                            HapticManager.shared.success()
+                            .padding([.bottom, .trailing], 16)
+                            .transition(.scale.combined(with: .opacity))
                         }
-                        .padding([.bottom, .trailing], 16)
-                        .transition(.scale.combined(with: .opacity))
                     }
+                    .padding(.horizontal, 0)
+                    .appearanceAnimation(delay: 0.15)
+                    
+                    Text("The more details you provide, the more accurate your dream interpretation will be. Include emotions, colors, and key events.")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .appearanceAnimation(delay: 0.2)
                 }
-                .padding(.horizontal, 0)
-                .appearanceAnimation(delay: 0.15)
                 
-                Text("The more details you provide, the more accurate your dream interpretation will be")
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                    .appearanceAnimation(delay: 0.2)
-            }
-            
-            Spacer()
-            
-            VStack(spacing: 16) {
-                Button(action: onNext) {
+                Spacer(minLength: 20)
+                
+                VStack(spacing: 16) {
+                    Button(action: {
+                        isTextFieldFocused = false
+                        onNext()
+                    }) {
+                        HStack(spacing: 8) {
+                            Text("NEXT STEP")
+                                .font(.system(size: 16, weight: .semibold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(!dreamDescription.isEmpty ? primaryPurple : primaryPurple.opacity(0.5))
+                        )
+                    }
+                    .scaleEffect(!dreamDescription.isEmpty ? 1.0 : 0.98)
+                    .disabled(dreamDescription.isEmpty)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dreamDescription.isEmpty)
+                    .appearanceAnimation(delay: 0.25)
+                    
                     HStack(spacing: 8) {
-                        Text("NEXT STEP")
-                            .font(.system(size: 16, weight: .semibold))
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 16, weight: .semibold))
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 14))
+                        Text("Your dreams are fully confidential")
+                            .font(.system(size: 14))
                     }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(!dreamDescription.isEmpty ? primaryPurple : primaryPurple.opacity(0.5))
-                    )
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 16)
+                    .appearanceAnimation(delay: 0.3)
                 }
-                .scaleEffect(!dreamDescription.isEmpty ? 1.0 : 0.98)
-                .disabled(dreamDescription.isEmpty)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dreamDescription.isEmpty)
-                .appearanceAnimation(delay: 0.25)
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 14))
-                    Text("Your dreams are fully confidential")
-                        .font(.system(size: 14))
-                }
-                .foregroundColor(.secondary)
-                .padding(.bottom, 16)
-                .appearanceAnimation(delay: 0.3)
             }
+            .padding(.bottom, 16)
         }
-        .padding(.bottom, 16)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
 

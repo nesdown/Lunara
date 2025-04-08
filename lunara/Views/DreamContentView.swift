@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import Models
 
 struct DreamContentView: View {
     @Environment(\.dismiss) var dismiss
@@ -306,5 +307,5 @@ struct DreamContentView: View {
 }
 
 #Preview {
-    DreamContentView(contentType: .dailyRitual)
+    DreamContentView(contentType: DreamContentType.dailyRitual)
 } 

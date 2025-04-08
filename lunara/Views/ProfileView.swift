@@ -180,6 +180,21 @@ struct ProfileView: View {
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
     
+    // Helper property to check if dark mode is active
+    private var isDarkMode: Bool {
+        return themeSettings.colorScheme == .dark
+    }
+    
+    // Computed binding for the dark mode toggle
+    private var darkModeBinding: Binding<Bool> {
+        Binding<Bool>(
+            get: { themeSettings.colorScheme == .dark },
+            set: { newValue in
+                themeSettings.colorScheme = newValue ? .dark : .light
+            }
+        )
+    }
+    
     var body: some View {
         NavigationView {
             ZStack(alignment: .top) {
@@ -260,7 +275,7 @@ struct ProfileView: View {
                                     icon: "moon.fill",
                                     title: "Dark Mode",
                                     type: .toggle,
-                                    isOn: $themeSettings.isDarkMode
+                                    isOn: darkModeBinding
                                 )
                                 
                                 SettingsRow(
@@ -353,7 +368,7 @@ struct ProfileView: View {
                                     title: "Contact Support",
                                     action: {
                                         // Open Contact Support URL
-                                        if let url = URL(string: "https://multumgrp.tech/lunara/contactus") {
+                                        if let url = URL(string: "https://multumgrp.tech/lunara#popup:form") {
                                             UIApplication.shared.open(url)
                                         }
                                     }
@@ -524,7 +539,11 @@ struct ProfileView: View {
         isNotificationsEnabled = false  // Reset in UserDefaults, actual system settings can't be changed
         isReminderEnabled = false
         isHapticsEnabled = true
-        themeSettings.isDarkMode = false
+        
+        // Reset theme to light mode
+        UserDefaults.standard.removeObject(forKey: "appColorScheme")
+        themeSettings.colorScheme = .light
+        
         reminderTimeString = "08:00"
         
         // Show onboarding flow again

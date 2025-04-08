@@ -1,15 +1,24 @@
 import SwiftUI
 
 public class ThemeSettings: ObservableObject {
-    @AppStorage("isDarkMode") public var isDarkMode: Bool = false {
+    @Published public var colorScheme: ColorScheme? {
         didSet {
-            colorScheme = isDarkMode ? .dark : .light
+            // Save to UserDefaults whenever the value changes
+            if let colorScheme = colorScheme {
+                UserDefaults.standard.set(colorScheme == .dark ? "dark" : "light", forKey: "appColorScheme")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "appColorScheme")
+            }
         }
     }
     
-    @Published public var colorScheme: ColorScheme = .light
-    
-    public init() {
-        colorScheme = isDarkMode ? .dark : .light
+    public init(colorScheme: ColorScheme? = nil) {
+        // Load from UserDefaults or use default (light mode)
+        if let savedTheme = UserDefaults.standard.string(forKey: "appColorScheme") {
+            self.colorScheme = savedTheme == "dark" ? .dark : .light
+        } else {
+            // If no saved preference, default to light mode
+            self.colorScheme = .light
+        }
     }
 } 

@@ -1,5 +1,6 @@
 import SwiftUI
 import Models
+import StoreKit
 
 struct HomeView: View {
     @Environment(\.colorScheme) var colorScheme
@@ -15,6 +16,11 @@ struct HomeView: View {
     
     // Dreams data
     @State private var latestDreams: [DreamEntry] = []
+    
+    // Helper property to check if dark mode is active
+    private var isDarkMode: Bool {
+        return themeSettings.colorScheme == .dark
+    }
     
     private var currentDate: String {
         let formatter = DateFormatter()
@@ -116,8 +122,9 @@ struct HomeView: View {
                             TopBarButton(icon: "star.fill", action: {
                                 // No functionality for now
                             }),
-                            TopBarButton(icon: themeSettings.isDarkMode ? "sun.max.fill" : "moon.fill", action: {
-                                themeSettings.isDarkMode.toggle()
+                            TopBarButton(icon: isDarkMode ? "sun.max.fill" : "moon.fill", action: {
+                                // Toggle between light and dark mode
+                                themeSettings.colorScheme = isDarkMode ? .light : .dark
                             })
                         ]
                     )
@@ -362,7 +369,14 @@ struct HomeView: View {
                             
                             // Action Buttons
                             VStack(spacing: 16) {
-                                Button {} label: {
+                                Button {
+                                    // Open premium upgrade flow or in-app purchase
+                                    HapticManager.shared.buttonPress()
+                                    // This would typically open your in-app purchase flow
+                                    // For now, we'll just provide a placeholder
+                                    print("User tapped to unlock premium features")
+                                    // TODO: Implement in-app purchase flow here
+                                } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "lock.open.fill")
                                             .font(.system(size: 16, weight: .semibold))
@@ -378,7 +392,17 @@ struct HomeView: View {
                                     )
                                 }
                                 
-                                Button {} label: {
+                                Button {
+                                    // Request app store review
+                                    HapticManager.shared.buttonPress()
+                                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                        if #available(iOS 18.0, *) {
+                                            StoreKit.AppStore.requestReview(in: scene)
+                                        } else {
+                                            SKStoreReviewController.requestReview(in: scene)
+                                        }
+                                    }
+                                } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "star.bubble.fill")
                                             .font(.system(size: 16, weight: .semibold))
@@ -394,7 +418,13 @@ struct HomeView: View {
                                     )
                                 }
                                 
-                                Button {} label: {
+                                Button {
+                                    // Open Contact Support URL
+                                    HapticManager.shared.buttonPress()
+                                    if let url = URL(string: "https://multumgrp.tech/lunara#popup:form") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "envelope.fill")
                                             .font(.system(size: 16, weight: .semibold))

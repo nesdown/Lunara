@@ -28,9 +28,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1A0DEDCE2DA426D3008F4260 /* lunara.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = lunara.xcodeproj; sourceTree = "<group>"; };
 		1A8030B52D71527D000DC0D1 /* lunara.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lunara.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A8030C52D71527E000DC0D1 /* lunaraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = lunaraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A8030CF2D71527E000DC0D1 /* lunaraUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = lunaraUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AC62B1E2DA4266E00F45C85 /* lunara.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = lunara.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -77,6 +79,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A0DEDD22DA426D3008F4260 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1A8030AC2D71527D000DC0D1 = {
 			isa = PBXGroup;
 			children = (
@@ -94,6 +101,11 @@
 				1A8030C52D71527E000DC0D1 /* lunaraTests.xctest */,
 				1A8030CF2D71527E000DC0D1 /* lunaraUITests.xctest */,
 			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1AC62B1F2DA4266E00F45C85 /* Products */ = {
+			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
 		};
@@ -207,6 +219,16 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1A8030B62D71527D000DC0D1 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 1A0DEDD22DA426D3008F4260 /* Products */;
+					ProjectRef = 1A0DEDCE2DA426D3008F4260 /* lunara.xcodeproj */;
+				},
+				{
+					ProductGroup = 1AC62B1F2DA4266E00F45C85 /* Products */;
+					ProjectRef = 1AC62B1E2DA4266E00F45C85 /* lunara.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				1A8030B42D71527D000DC0D1 /* lunara */,
@@ -405,7 +427,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"lunara/Preview Content\"";
-				DEVELOPMENT_TEAM = 4SFWS96Q5D;
+				DEVELOPMENT_TEAM = 552Q3MUC25;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -437,7 +459,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"lunara/Preview Content\"";
-				DEVELOPMENT_TEAM = 4SFWS96Q5D;
+				DEVELOPMENT_TEAM = 552Q3MUC25;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";

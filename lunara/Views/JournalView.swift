@@ -308,12 +308,17 @@ struct BiographyInputView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var isAppearing = false
     @State private var isSaving = false
+    @Binding var parentBiography: String
+    
+    // For keyboard avoidance
+    @State private var keyboardHeight: CGFloat = 0
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
     
     // Initialize with existing biography if available
-    init() {
+    init(parentBiography: Binding<String>) {
+        self._parentBiography = parentBiography
         _biographyText = State(initialValue: BiographyService.shared.getBiography())
     }
     
@@ -323,133 +328,149 @@ struct BiographyInputView: View {
                 Color(.systemBackground)
                     .edgesIgnoringSafeArea(.all)
                 
-                VStack(spacing: 24) {
-                    // Header with Icon
-                    VStack(spacing: 16) {
-                        // Left part - Icon
-                        ZStack {
-                            Circle()
-                                .fill(lightPurple)
-                                .frame(width: 80, height: 80)
-                                .scaleEffect(isAppearing ? 1.0 : 0.8)
-                                .opacity(isAppearing ? 1.0 : 0.0)
-                            
-                            Image(systemName: "person.text.rectangle.fill")
-                                .font(.system(size: 40))
-                                .foregroundColor(primaryPurple)
-                                .scaleEffect(isAppearing ? 1.0 : 0.6)
-                                .opacity(isAppearing ? 1.0 : 0.0)
-                                .rotationEffect(.degrees(isAppearing ? 0 : -30))
-                        }
-                        .animation(AppAnimation.spring.delay(0.1), value: isAppearing)
-                        
-                        Text("Your Biography")
-                            .font(.system(size: 28, weight: .bold))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 8)
-                            .opacity(isAppearing ? 1.0 : 0.0)
-                            .offset(y: isAppearing ? 0 : 20)
-                            .animation(AppAnimation.spring.delay(0.2), value: isAppearing)
-                    }
-                    .padding(.top, 16)
-                    
-                    // Explanation
-                    Text("Your biography helps personalize dream interpretations. Tell us about your life, interests, and experiences that might influence your dreams.")
-                        .font(.system(size: 16))
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                        .opacity(isAppearing ? 1.0 : 0.0)
-                        .offset(y: isAppearing ? 0 : 15)
-                        .animation(AppAnimation.spring.delay(0.3), value: isAppearing)
-                    
-                    // Text Input
-                    VStack(spacing: 16) {
-                        // Fixed width container to match button width
-                        VStack(spacing: 0) {
-                            ZStack(alignment: .bottomTrailing) {
-                                TextEditor(text: $biographyText)
-                                    .frame(minHeight: 200)
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .strokeBorder(primaryPurple.opacity(0.15), lineWidth: 1.5)
-                                    )
-                                    .overlay(
-                                        Group {
-                                            if biographyText.isEmpty {
-                                                Text("Tell us about yourself...")
-                                                    .foregroundColor(.secondary)
-                                                    .padding(.horizontal, 24)
-                                                    .padding(.vertical, 24)
-                                                    .allowsHitTesting(false)
-                                            }
-                                        },
-                                        alignment: .topLeading
-                                    )
-                                    .focused($isTextFieldFocused)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header with Icon
+                        VStack(spacing: 16) {
+                            // Left part - Icon
+                            ZStack {
+                                Circle()
+                                    .fill(lightPurple)
+                                    .frame(width: 80, height: 80)
+                                    .scaleEffect(isAppearing ? 1.0 : 0.8)
+                                    .opacity(isAppearing ? 1.0 : 0.0)
                                 
-                                VoiceInputButton(color: primaryPurple) { text in
-                                    if biographyText.isEmpty {
-                                        biographyText = text
-                } else {
-                                        biographyText += " " + text
-                                    }
-                                    // Add haptic feedback when text is updated
-                                    HapticManager.shared.success()
-                                }
-                                .padding([.bottom, .trailing], 16)
-                                .scaleEffect(isAppearing ? 1.0 : 0.0)
-                                .animation(AppAnimation.spring.delay(0.5), value: isAppearing)
+                                Image(systemName: "person.text.rectangle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(primaryPurple)
+                                    .scaleEffect(isAppearing ? 1.0 : 0.6)
+                                    .opacity(isAppearing ? 1.0 : 0.0)
+                                    .rotationEffect(.degrees(isAppearing ? 0 : -30))
                             }
+                            .animation(AppAnimation.spring.delay(0.1), value: isAppearing)
+                            
+                            Text("Your Biography")
+                                .font(.system(size: 28, weight: .bold))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 8)
+                                .opacity(isAppearing ? 1.0 : 0.0)
+                                .offset(y: isAppearing ? 0 : 20)
+                                .animation(AppAnimation.spring.delay(0.2), value: isAppearing)
                         }
-                        .padding(.horizontal, 24) // Match button's horizontal padding
-                        .opacity(isAppearing ? 1.0 : 0.0)
-                        .offset(y: isAppearing ? 0 : 20)
-                        .animation(AppAnimation.spring.delay(0.4), value: isAppearing)
+                        .padding(.top, 16)
                         
-                        Text("This information is stored locally on your device only.")
-                            .font(.system(size: 14))
+                        // Explanation
+                        Text("Your biography helps personalize dream interpretations. Tell us about your life, interests, and experiences that might influence your dreams.")
+                            .font(.system(size: 16))
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                             .opacity(isAppearing ? 1.0 : 0.0)
-                            .animation(AppAnimation.spring.delay(0.5), value: isAppearing)
-                    }
-                    
-                    Spacer()
-                    
-                    // Save Button
-                    Button(action: saveAndDismiss) {
-                        HStack(spacing: 12) {
-                            if isSaving {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .scaleEffect(0.8)
+                            .offset(y: isAppearing ? 0 : 15)
+                            .animation(AppAnimation.spring.delay(0.3), value: isAppearing)
+                        
+                        // Text Input
+                        VStack(spacing: 16) {
+                            // Fixed width container to match button width
+                            VStack(spacing: 0) {
+                                ZStack(alignment: .bottomTrailing) {
+                                    TextEditor(text: $biographyText)
+                                        .frame(minHeight: 200)
+                                        .padding()
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .strokeBorder(primaryPurple.opacity(0.15), lineWidth: 1.5)
+                                        )
+                                        .overlay(
+                                            Group {
+                                                if biographyText.isEmpty {
+                                                    Text("Tell us about yourself...")
+                                                        .foregroundColor(.secondary)
+                                                        .padding(.horizontal, 24)
+                                                        .padding(.vertical, 24)
+                                                        .allowsHitTesting(false)
+                                                }
+                                            },
+                                            alignment: .topLeading
+                                        )
+                                        .focused($isTextFieldFocused)
+                                        .toolbar {
+                                            ToolbarItemGroup(placement: .keyboard) {
+                                                Spacer()
+                                                Button("Done") {
+                                                    isTextFieldFocused = false
+                                                }
+                                                .foregroundColor(primaryPurple)
+                                                .font(.headline)
+                                            }
+                                        }
+                                    
+                                    VoiceInputButton(color: primaryPurple) { text in
+                                        if biographyText.isEmpty {
+                                            biographyText = text
+                                        } else {
+                                            biographyText += " " + text
+                                        }
+                                        // Add haptic feedback when text is updated
+                                        HapticManager.shared.success()
+                                    }
+                                    .padding([.bottom, .trailing], 16)
+                                    .scaleEffect(isAppearing ? 1.0 : 0.0)
+                                    .animation(AppAnimation.spring.delay(0.5), value: isAppearing)
+                                }
                             }
+                            .padding(.horizontal, 24) // Match button's horizontal padding
+                            .opacity(isAppearing ? 1.0 : 0.0)
+                            .offset(y: isAppearing ? 0 : 20)
+                            .animation(AppAnimation.spring.delay(0.4), value: isAppearing)
                             
-                            Text(isSaving ? "Saving..." : "Save")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
+                            Text("This information is stored locally on your device only.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                                .opacity(isAppearing ? 1.0 : 0.0)
+                                .animation(AppAnimation.spring.delay(0.5), value: isAppearing)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(primaryPurple)
-                        .cornerRadius(12)
-                        .scaleEffect(isSaving ? 0.98 : 1.0)
-                        .animation(.spring(response: 0.3), value: isSaving)
+                        
+                        Spacer(minLength: 40)
+                        
+                        // Save Button
+                        Button(action: saveAndDismiss) {
+                            HStack(spacing: 12) {
+                                if isSaving {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .scaleEffect(0.8)
+                                }
+                                
+                                Text(isSaving ? "Saving..." : "Save")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(primaryPurple)
+                            .cornerRadius(12)
+                            .scaleEffect(isSaving ? 0.98 : 1.0)
+                            .animation(.spring(response: 0.3), value: isSaving)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 24)
+                        .opacity(isAppearing ? 1.0 : 0.0)
+                        .offset(y: isAppearing ? 0 : 30)
+                        .animation(AppAnimation.spring.delay(0.6), value: isAppearing)
+                        
+                        // Add extra padding at the bottom to prevent content from being hidden by keyboard
+                        Spacer(minLength: keyboardHeight > 0 ? keyboardHeight - 100 : 0)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
-                    .opacity(isAppearing ? 1.0 : 0.0)
-                    .offset(y: isAppearing ? 0 : 30)
-                    .animation(AppAnimation.spring.delay(0.6), value: isAppearing)
+                    .padding(.top, 20)
+                    .padding(.bottom, 20)
                 }
-                .padding(.top, 20)
             }
             .navigationBarItems(trailing: Button(action: {
                 dismiss()
@@ -459,20 +480,40 @@ struct BiographyInputView: View {
                     .foregroundColor(.secondary)
             })
             .onAppear {
-                // Trigger appearance animations
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Trigger appearance animations with minimal delay to reduce lag
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     isAppearing = true
                 }
                 
-                // Auto-focus the text field
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Delay auto-focus slightly to ensure view is fully loaded
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     isTextFieldFocused = true
                 }
+                
+                // Set up keyboard notifications
+                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+                    if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                        keyboardHeight = keyboardFrame.height
+                    }
+                }
+                
+                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                    keyboardHeight = 0
+                }
             }
+            .onDisappear {
+                // Clean up notifications
+                NotificationCenter.default.removeObserver(self)
+            }
+            // Disable automatic keyboard avoidance to handle it manually
+            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
     }
     
     private func saveAndDismiss() {
+        // First dismiss keyboard
+        isTextFieldFocused = false
+        
         // Show saving animation
         isSaving = true
         
@@ -480,9 +521,12 @@ struct BiographyInputView: View {
         HapticManager.shared.success()
         
         // Simulate a brief saving process
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { // Reduced from 0.6 to 0.4 for better responsiveness
             // Save biography
             BiographyService.shared.saveBiography(biographyText)
+            
+            // Update parent state
+            parentBiography = biographyText
             
             // Dismiss the sheet
             dismiss()
@@ -2053,6 +2097,9 @@ struct JournalView: View {
             .sheet(isPresented: $showDreamEntrySheet) {
                 DreamEntryFlow()
             }
+            .sheet(isPresented: $showingBiographyInput) {
+                BiographyInputView(parentBiography: $userBiography)
+            }
             .onAppear {
                 // Load dreams when view appears
                 loadDreams()
@@ -2306,6 +2353,9 @@ struct JournalView: View {
     private func loadDreams() {
         dreams = DreamStorageService.shared.getAllDreams()
         dreamsByDate = DreamStorageService.shared.getDreamsGroupedByMonth()
+        
+        // Load the user's biography
+        userBiography = BiographyService.shared.getBiography()
     }
     
     private var AllDreamsTabView: some View {
