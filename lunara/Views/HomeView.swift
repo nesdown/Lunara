@@ -9,6 +9,7 @@ struct HomeView: View {
     @State private var showingDreamDetails = false
     @State private var selectedDream: DreamEntry?
     @State private var showBiorythmAnalysis = false
+    @State private var showingSubscription = false
     
     // Custom colors
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
@@ -221,7 +222,10 @@ struct HomeView: View {
                                     .background(lightPurple)
                                     .padding(.horizontal, 16)
                                 
-                                Button {} label: {
+                                Button {
+                                    HapticManager.shared.buttonPress()
+                                    showingSubscription = true
+                                } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "star.fill")
                                             .font(.system(size: 16, weight: .semibold))
@@ -452,6 +456,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showBiorythmAnalysis) {
             BiorythmAnalysisFlow()
+        }
+        .fullScreenCover(isPresented: $showingSubscription) {
+            SubscriptionView()
         }
         .fullScreenCover(isPresented: $showingDreamDetails, onDismiss: {
             print("Dream details dismissed in HomeView")
