@@ -1,6 +1,11 @@
 import SwiftUI
 import StoreKit
 
+@MainActor
+final class SubscriptionViewModel: ObservableObject {
+    @Published var showPromoOffer = false
+}
+
 struct SubscriptionFeature: Identifiable, Equatable {
     let id = UUID()
     let icon: String
@@ -12,6 +17,7 @@ struct SubscriptionFeature: Identifiable, Equatable {
 struct SubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var subscriptionService = SubscriptionService.shared
+    @StateObject private var viewModel = SubscriptionViewModel()
     
     @State private var isYearlySelected = false // Set to false by default for 3 Days Free
     @State private var freeTrialEnabled = true
@@ -106,7 +112,7 @@ struct SubscriptionView: View {
                     // Top buttons (cross on left, restore on right)
                     HStack {
                         Button {
-                            dismiss()
+                            viewModel.showPromoOffer = true
                         } label: {
                             ZStack {
                                 Circle()
@@ -461,6 +467,12 @@ struct SubscriptionView: View {
             Task {
                 await subscriptionService.loadProducts()
             }
+        }
+        .fullScreenCover(isPresented: $viewModel.showPromoOffer) {
+            PromoOfferView {
+                dismiss()
+            }
+            .interactiveDismissDisabled()
         }
     }
     
