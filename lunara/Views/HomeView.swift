@@ -12,6 +12,22 @@ struct HomeView: View {
     @State private var showingSubscription = false
     @State private var showingPromoModal = false
     
+    // Button animation states
+    @State private var unlockButtonScale: CGFloat = 1.0
+    @State private var unlockButtonRotation: Double = 0.0
+    @State private var rateButtonScale: CGFloat = 1.0
+    @State private var rateButtonOffset: CGFloat = 0.0
+    @State private var rateButtonOpacity: Double = 1.0
+    @State private var contactButtonScale: CGFloat = 1.0
+    @State private var contactButtonOpacity: Double = 1.0
+    @State private var premiumButtonScale: CGFloat = 1.0
+    @State private var newDreamButtonScale: CGFloat = 1.0
+    @State private var newDreamButtonBrightness: Double = 0.0
+    @State private var newDreamButtonBgOpacity: Double = 0.0
+    @State private var biorythmButtonScale: CGFloat = 1.0
+    @State private var biorythmButtonColor: Color = Color(red: 147/255, green: 112/255, blue: 219/255)
+    @State private var biorythmButtonBlur: CGFloat = 0.0
+    
     // Custom colors
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -170,6 +186,28 @@ struct HomeView: View {
                                 
                                 Button {
                                     HapticManager.shared.buttonPress()
+                                    
+                                    // Button animation - enhanced shimmer effect
+                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                                        newDreamButtonScale = 0.85
+                                        newDreamButtonBrightness = 0.4
+                                        newDreamButtonBgOpacity = 1.0
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
+                                            newDreamButtonScale = 1.1
+                                            newDreamButtonBrightness = 0.0
+                                            newDreamButtonBgOpacity = 0.0
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                                                newDreamButtonScale = 1.0
+                                            }
+                                        }
+                                    }
+                                    
                                     showingDreamEntry = true
                                 } label: {
                                     HStack(spacing: 8) {
@@ -183,6 +221,13 @@ struct HomeView: View {
                                     .padding(.vertical, 16)
                                 }
                                 .padding(.horizontal, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .fill(Color.white.opacity(0.2))
+                                        .opacity(newDreamButtonBgOpacity)
+                                )
+                                .scaleEffect(newDreamButtonScale)
+                                .brightness(newDreamButtonBrightness)
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
@@ -228,6 +273,24 @@ struct HomeView: View {
                                 
                                 Button {
                                     HapticManager.shared.buttonPress()
+                                    
+                                    // Button animation - dramatic pulse effect
+                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                                        premiumButtonScale = 0.8
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
+                                            premiumButtonScale = 1.15
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                                                premiumButtonScale = 1.0
+                                            }
+                                        }
+                                    }
+                                    
                                     showingSubscription = true
                                 } label: {
                                     HStack(spacing: 8) {
@@ -241,6 +304,7 @@ struct HomeView: View {
                                     .padding(.vertical, 16)
                                 }
                                 .padding(.horizontal, 16)
+                                .scaleEffect(premiumButtonScale)
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
@@ -286,6 +350,29 @@ struct HomeView: View {
                                 
                                 Button {
                                     HapticManager.shared.buttonPress()
+                                    
+                                    // Button animation - dramatic color pulse with blur
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        biorythmButtonScale = 0.85
+                                        biorythmButtonColor = Color(red: 210/255, green: 170/255, blue: 255/255)
+                                        biorythmButtonBlur = 5
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
+                                            biorythmButtonScale = 1.15
+                                            biorythmButtonColor = Color(red: 180/255, green: 140/255, blue: 255/255)
+                                            biorythmButtonBlur = 0
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                                                biorythmButtonScale = 1.0
+                                                biorythmButtonColor = primaryPurple
+                                            }
+                                        }
+                                    }
+                                    
                                     showBiorythmAnalysis = true
                                 } label: {
                                     HStack(spacing: 8) {
@@ -294,11 +381,13 @@ struct HomeView: View {
                                         Text("BEGIN ANALYSIS")
                                             .font(.system(size: 16, weight: .semibold))
                                     }
-                                    .foregroundColor(primaryPurple)
+                                    .foregroundColor(biorythmButtonColor)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
                                 }
                                 .padding(.horizontal, 16)
+                                .scaleEffect(biorythmButtonScale)
+                                .blur(radius: biorythmButtonBlur)
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
@@ -380,10 +469,28 @@ struct HomeView: View {
                                 Button {
                                     // Open premium upgrade flow or in-app purchase
                                     HapticManager.shared.buttonPress()
-                                    // This would typically open your in-app purchase flow
-                                    // For now, we'll just provide a placeholder
-                                    print("User tapped to unlock premium features")
-                                    // TODO: Implement in-app purchase flow here
+                                    
+                                    // Button animation - subtle rotation and scale effect
+                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                                        unlockButtonScale = 0.95
+                                        unlockButtonRotation = -1
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                            unlockButtonScale = 1.03
+                                            unlockButtonRotation = 0.5
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                                                unlockButtonScale = 1.0
+                                                unlockButtonRotation = 0
+                                            }
+                                        }
+                                    }
+                                    
+                                    showingSubscription = true
                                 } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "lock.open.fill")
@@ -399,10 +506,33 @@ struct HomeView: View {
                                             .strokeBorder(primaryPurple, lineWidth: 1)
                                     )
                                 }
+                                .scaleEffect(unlockButtonScale)
+                                .rotationEffect(.degrees(unlockButtonRotation))
                                 
                                 Button {
                                     // Request app store review
                                     HapticManager.shared.buttonPress()
+                                    
+                                    // Button animation - subtle press with fade
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        rateButtonScale = 0.97
+                                        rateButtonOpacity = 0.85
+                                        rateButtonOffset = 0
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                            rateButtonScale = 1.02
+                                            rateButtonOpacity = 1.0
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                                rateButtonScale = 1.0
+                                            }
+                                        }
+                                    }
+                                    
                                     if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                                         if #available(iOS 18.0, *) {
                                             StoreKit.AppStore.requestReview(in: scene)
@@ -425,10 +555,33 @@ struct HomeView: View {
                                             .strokeBorder(Color(.systemGray), lineWidth: 1)
                                     )
                                 }
+                                .scaleEffect(rateButtonScale)
+                                .offset(y: rateButtonOffset)
+                                .opacity(rateButtonOpacity)
                                 
                                 Button {
                                     // Open Contact Support URL
                                     HapticManager.shared.buttonPress()
+                                    
+                                    // Button animation - subtle press with fade
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        contactButtonScale = 0.97
+                                        contactButtonOpacity = 0.85
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                            contactButtonScale = 1.02
+                                            contactButtonOpacity = 1.0
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                                contactButtonScale = 1.0
+                                            }
+                                        }
+                                    }
+                                    
                                     if let url = URL(string: "https://multumgrp.tech/lunara#popup:form") {
                                         UIApplication.shared.open(url)
                                     }
@@ -447,6 +600,8 @@ struct HomeView: View {
                                             .strokeBorder(Color(.systemGray), lineWidth: 1)
                                     )
                                 }
+                                .scaleEffect(contactButtonScale)
+                                .opacity(contactButtonOpacity)
                             }
                         }
                         .padding(16)
