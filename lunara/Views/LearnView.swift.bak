@@ -690,7 +690,7 @@ struct LearnCard: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24)
-                .strokeBorder(DynamicColors.lightPurple, lineWidth: 1)
+                .strokeBorder(lightPurple, lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
     }
@@ -742,7 +742,7 @@ struct SymbolOfTheDay: View {
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 24)
-                        .strokeBorder(DynamicColors.primaryPurple, lineWidth: 1)
+                        .strokeBorder(primaryPurple, lineWidth: 1)
                 )
             }
             .padding(.horizontal, 16)
@@ -755,7 +755,7 @@ struct SymbolOfTheDay: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24)
-                .strokeBorder(DynamicColors.lightPurple, lineWidth: 1)
+                .strokeBorder(lightPurple, lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
     }
@@ -764,181 +764,58 @@ struct SymbolOfTheDay: View {
 struct ArticleOfTheDay: View {
     let article: DreamArticle
     @Environment(\.colorScheme) var colorScheme
-    @Binding var selectedArticle: DreamArticle?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Featured badge and header
-            HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                    
-                    Text("FEATURED TODAY")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .tracking(0.5)
-                }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 12)
-                .background(
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    DynamicColors.primaryPurple,
-                                    DynamicColors.primaryPurple.opacity(0.8)
-                                ]), 
-                                startPoint: .leading, 
-                                endPoint: .trailing
-                            )
-                        )
-                )
-                
-                Spacer()
-                
-                // Date display
-                Text(formattedDate())
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(DynamicColors.textSecondary)
-            }
+        VStack(spacing: 16) {
+            Text("ARTICLE OF THE DAY")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(DynamicColors.textSecondary)
             
-            // Article card with a more modern design
-            Button(action: {
-                selectedArticle = article
-            }) {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Abstract header image with rounded top corners
-                    AbstractionView(seed: article.id, type: .header)
-                        .frame(height: 140)
-                        .overlay(
-                            // Gradient overlay for better text contrast
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.black.opacity(0.5),
-                                    Color.black.opacity(0.2),
-                                    Color.clear
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .clipShape(
-                            // Just round the top corners
-                            RoundedRectangle(cornerRadius: 20)
-                        )
-                        .overlay(
-                            // Category badge
-                            Text(article.category.rawValue)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(
-                                    Capsule()
-                                        .fill(DynamicColors.primaryPurple.opacity(0.8))
-                                        .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
-                                )
-                                .padding(16),
-                            alignment: .topTrailing
-                        )
-                    
-                    // Content container with rest of card
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Icon and title
-                        HStack(spacing: 16) {
-                            // Article icon
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [
-                                                DynamicColors.lightPurple,
-                                                DynamicColors.primaryPurple.opacity(0.7)
-                                            ]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 60, height: 60)
-                                    .shadow(color: DynamicColors.primaryPurple.opacity(0.2), radius: 5, x: 0, y: 3)
-                                
-                                Image(systemName: article.icon)
-                                    .font(.system(size: 24, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .offset(y: -30)
-                            .padding(.bottom, -30)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(article.title)
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(DynamicColors.textPrimary)
-                                    .lineLimit(2)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                
-                                // Reading time indicator
-                                HStack(spacing: 4) {
-                                    Image(systemName: "clock")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(DynamicColors.primaryPurple)
-                                    
-                                    Text("\(estimateReadingTime(article.content)) min read")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(DynamicColors.textSecondary)
-                                }
-                            }
-                        }
-                        
-                        // Description
-                        Text(article.description.trimmingCharacters(in: .whitespacesAndNewlines))
-                            .font(.system(size: 14))
-                            .foregroundColor(DynamicColors.textSecondary)
-                            .lineSpacing(4)
-                            .lineLimit(3)
-                            .padding(.trailing, 8)
-                        
-                        // Read more button
-                        HStack {
-                            Text("Read Article")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(DynamicColors.primaryPurple)
-                            
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(DynamicColors.primaryPurple)
-                        }
-                        .padding(.top, 4)
-                    }
-                    .padding(16)
-                    .padding(.top, 4)
-                    .background(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
+            ZStack {
+                Circle()
+                    .fill(DynamicColors.lightPurple.opacity(colorScheme == .dark ? 0.3 : 1.0))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: article.icon)
+                    .font(.system(size: 60, weight: .bold))
+                    .foregroundColor(DynamicColors.primaryPurple)
+            }
+            .padding(.vertical, 8)
+            
+            Text(article.title)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(DynamicColors.textPrimary)
+                .multilineTextAlignment(.center)
+            
+            Text(article.description)
+                .font(.subheadline)
+                .foregroundColor(DynamicColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+            
+            NavigationLink(destination: ArticleView(article: article)) {
+                HStack(spacing: 8) {
+                    Image(systemName: "book.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("READ MORE")
+                        .font(.system(size: 16, weight: .semibold))
                 }
-                // Apply corner radius to entire card
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .foregroundColor(DynamicColors.primaryPurple)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
-                        .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(DynamicColors.primaryPurple, lineWidth: 1)
                 )
             }
             .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
         }
-    }
-    
-    // Helper functions
-    private func formattedDate() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM d, yyyy"
-        return formatter.string(from: Date())
-    }
-    
-    private func estimateReadingTime(_ content: String) -> Int {
-        let wordCount = content.split(separator: " ").count
-        let readingTimeMinutes = max(1, Int(ceil(Double(wordCount) / 200.0)))
-        return readingTimeMinutes
+        .padding(.vertical, 16)
+        .modifier(CardStyle())
     }
 }
 
@@ -2087,14 +1964,6 @@ struct DailyDreamFactDetailView: View {
                                     let shareText = "Did you know? \(fact.introduction)\n\nLearn more about dreams with Lunara app!"
                                     let shareContent = [shareText]
                                     
-                                    // Get the key window for iOS 13+
-                                    let keyWindow = UIApplication.shared.connectedScenes
-                                        .filter { $0.activationState == .foregroundActive }
-                                        .compactMap { $0 as? UIWindowScene }
-                                        .first?.windows
-                                        .filter { $0.isKeyWindow }
-                                        .first
-                                    
                                     // Create activity view controller
                                     let activityViewController = UIActivityViewController(
                                         activityItems: shareContent,
@@ -2102,13 +1971,11 @@ struct DailyDreamFactDetailView: View {
                                     )
                                     
                                     // Present the activity view controller
-                                    if let keyWindow = keyWindow {
-                                        keyWindow.rootViewController?.present(
-                                            activityViewController,
-                                            animated: true,
-                                            completion: nil
-                                        )
-                                    }
+                                    UIApplication.shared.windows.first?.rootViewController?.present(
+                                        activityViewController,
+                                        animated: true,
+                                        completion: nil
+                                    )
                                 }) {
                                     HStack {
                                         Image(systemName: "square.and.arrow.up")
@@ -2257,7 +2124,7 @@ struct EncyclopediaItem: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 24)
-                    .strokeBorder(DynamicColors.lightPurple, lineWidth: 1)
+                    .strokeBorder(lightPurple, lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
         }
@@ -2504,15 +2371,362 @@ struct ArticleGridItem: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 24)
-                    .strokeBorder(DynamicColors.lightPurple, lineWidth: 1)
+                    .strokeBorder(lightPurple, lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
         }
     }
 }
 
-// New ArticleSheetView to display article content in a modal sheet
-struct ArticleSheetView: View {
+struct LearnView: View {
+    @Environment(\.colorScheme) var colorScheme
+    @State private var showArticleCatalog = false
+    @State private var showDailyRitual = false
+    @State private var showLucidDreamingLesson = false
+    @State private var showDreamFact = false
+    @State private var searchText: String = ""
+    @State private var selectedCategory: DreamArticle.ArticleCategory? = nil
+    @State private var expandedArticle: UUID? = nil
+    
+    private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
+    private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
+    
+    private let columns = [
+        GridItem(.flexible())
+    ]
+    
+    private var filteredArticles: [DreamArticle] {
+        var articles = DreamArticle.allArticles
+        
+        // Apply category filter if selected
+        if let category = selectedCategory {
+            articles = articles.filter { $0.category == category }
+        }
+        
+        // Apply search text filter if not empty
+        if !searchText.isEmpty {
+            articles = articles.filter {
+                $0.title.lowercased().contains(searchText.lowercased()) ||
+                $0.description.lowercased().contains(searchText.lowercased())
+            }
+        }
+        
+        return articles
+    }
+    
+    // Random article for the "Article of the Day" section
+    private var articleOfTheDay: DreamArticle {
+        DreamArticle.allArticles.randomElement() ?? DreamArticle.allArticles[0]
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                DynamicColors.backgroundPrimary.edgesIgnoringSafeArea(.all)
+                
+                VStack(spacing: 0) {
+                    // Header section with title - fixed at top
+                    TopBarView(
+                        title: "Learn",
+                        primaryPurple: DynamicColors.primaryPurple,
+                        colorScheme: colorScheme,
+                        rightButtons: [
+                            TopBarButton(icon: "questionmark.circle", action: {
+                                if let url = URL(string: "https://multumgrp.tech/lunara-help") {
+                                    UIApplication.shared.open(url)
+                                }
+                            })
+                        ]
+                    )
+                    
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // Search Bar
+                            searchBar
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
+                            
+                            // Category Filters
+                            categoryFilters
+                                .padding(.horizontal, 16)
+                            
+                            // Lucid Dreaming Lesson Tile
+                            NavigationLink(
+                                destination: LucidDreamingLessonDetailView(),
+                                isActive: $showLucidDreamingLesson
+                            ) {
+                                Button(action: {
+                                    showLucidDreamingLesson = true
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                }) {
+                                    LucidDreamingLessonTile(onButtonTap: {
+                                        showLucidDreamingLesson = true
+                                    })
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.horizontal, 16)
+                            
+                            // Daily Dream Fact Tile
+                            NavigationLink(
+                                destination: DailyDreamFactDetailView(),
+                                isActive: $showDreamFact
+                            ) {
+                                Button(action: {
+                                    showDreamFact = true
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                }) {
+                                    DailyDreamFactTile(onButtonTap: {
+                                        showDreamFact = true
+                                    })
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.horizontal, 16)
+                            
+                            // Article of the Day
+                            ArticleOfTheDay(article: articleOfTheDay)
+                                .padding(.horizontal, 16)
+                            
+                            // Article Grid
+                            articleGrid
+                                .padding(.horizontal, 16)
+                            
+                            Spacer(minLength: 80)
+                        }
+                        .padding(.bottom, 24)
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+        }
+    }
+    
+    private var searchBar: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(DynamicColors.gray3)
+            
+            TextField("Search articles...", text: $searchText)
+                .foregroundColor(DynamicColors.textPrimary)
+            
+            if !searchText.isEmpty {
+                Button(action: {
+                    searchText = ""
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(DynamicColors.gray3)
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(DynamicColors.backgroundSecondary)
+        )
+    }
+    
+    private var categoryFilters: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                // All categories option
+                CategoryPill(
+                    name: "All",
+                    isSelected: selectedCategory == nil,
+                    action: { selectedCategory = nil }
+                )
+                
+                // Individual category pills
+                ForEach(DreamArticle.ArticleCategory.allCases, id: \.self) { category in
+                    CategoryPill(
+                        name: category.rawValue,
+                        isSelected: selectedCategory == category,
+                        action: {
+                            selectedCategory = category
+                        }
+                    )
+                }
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var articleGrid: some View {
+        LazyVGrid(columns: columns, spacing: 20) {
+            ForEach(filteredArticles) { article in
+                ArticleCard(article: article)
+            }
+        }
+    }
+}
+
+struct CategoryPill: View {
+    let name: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(name)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(isSelected ? .white : DynamicColors.primaryPurple)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? DynamicColors.primaryPurple : DynamicColors.primaryPurple.opacity(0.1))
+                )
+        }
+    }
+}
+
+struct ArticleCard: View {
+    let article: DreamArticle
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        NavigationLink(destination: ArticleView(article: article)) {
+            VStack(alignment: .leading, spacing: 16) {
+                // Header with icon and category
+                HStack {
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(DynamicColors.lightPurple.opacity(colorScheme == .dark ? 0.3 : 1.0))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: article.icon)
+                            .font(.system(size: 20))
+                            .foregroundColor(DynamicColors.primaryPurple)
+                    }
+                    
+                    Spacer()
+                    
+                    // Category pill
+                    Text(article.category.rawValue)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(DynamicColors.primaryPurple)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(DynamicColors.primaryPurple.opacity(0.1))
+                        )
+                }
+                
+                // Title
+                Text(article.title)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(DynamicColors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+                
+                // Description
+                Text(article.description)
+                    .font(.subheadline)
+                    .foregroundColor(DynamicColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
+                
+                // Read more button
+                HStack {
+                    Spacer()
+                    Text("Read Article")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(DynamicColors.primaryPurple)
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(DynamicColors.primaryPurple)
+                }
+            }
+            .padding(16)
+            .frame(height: 200)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(DynamicColors.primaryPurple.opacity(0.15), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct ArticleListItem: View {
+    let article: DreamArticle
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Header with icon and title
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(DynamicColors.lightPurple.opacity(colorScheme == .dark ? 0.3 : 1.0))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: article.icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(DynamicColors.primaryPurple)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(article.title)
+                        .font(.headline)
+                        .foregroundColor(DynamicColors.textPrimary)
+                    
+                    Text(article.category.rawValue)
+                        .font(.subheadline)
+                        .foregroundColor(DynamicColors.primaryPurple)
+                }
+                
+                Spacer()
+            }
+            
+            // Description
+            Text(article.description)
+                .font(.body)
+                .foregroundColor(DynamicColors.textSecondary)
+                .multilineTextAlignment(.leading)
+            
+            // Read More button
+            Button(action: {
+                if let url = URL(string: article.link) {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("SHOW MORE")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(DynamicColors.primaryPurple)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(DynamicColors.primaryPurple, lineWidth: 1)
+                )
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+        }
+        .padding(.vertical, 16)
+        .modifier(CardStyle())
+    }
+    
+    @Environment(\.colorScheme) var colorScheme
+}
+
+// New ArticleView to display full article content
+struct ArticleView: View {
     let article: DreamArticle
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
@@ -2521,100 +2735,195 @@ struct ArticleSheetView: View {
     @State private var appearAnimation = false
     @State private var showFloatingButton = false
     
-    // Calculate screen height for dynamic sizing
-    @State private var screenHeight: CGFloat = UIScreen.main.bounds.height
-    
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        GeometryReader { geometry in
             ZStack(alignment: .top) {
-                // Enhanced background with gradient and pattern
-                VStack(spacing: 0) {
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            DynamicColors.backgroundPrimary,
-                            DynamicColors.lightPurple.opacity(colorScheme == .dark ? 0.05 : 0.1),
-                            DynamicColors.backgroundPrimary
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 300)
-                    
-                    DynamicColors.backgroundPrimary
-                }
-                .edgesIgnoringSafeArea(.all)
-                
-                // Decorative elements
-                ZStack {
-                    // Top right corner decoration
-                    Circle()
-                        .fill(DynamicColors.primaryPurple.opacity(0.05))
-                        .frame(width: 300)
-                        .offset(x: 150, y: -30)
-                        .blur(radius: 70)
-                    
-                    // Bottom left corner decoration
-                    Circle()
-                        .fill(DynamicColors.lightPurple.opacity(0.08))
-                        .frame(width: 250, height: 250)
-                        .offset(x: -150, y: 400)
-                        .blur(radius: 60)
-                    
-                    // Additional decorative element
-                    Circle()
-                        .fill(DynamicColors.primaryPurple.opacity(0.05))
-                        .frame(width: 200)
-                        .offset(x: 100, y: 300)
-                        .blur(radius: 50)
-                    
-                    // Subtle pattern overlay
-                    ZStack {
-                        ForEach(0..<30) { i in
-                            let size = CGFloat.random(in: 3...5)
-                            let opacity = Double.random(in: 0.05...0.1)
-                            
-                            Circle()
-                                .fill(DynamicColors.primaryPurple)
-                                .frame(width: size, height: size)
-                                .offset(
-                                    x: CGFloat.random(in: -200...200),
-                                    y: CGFloat.random(in: -300...600)
-                                )
-                                .opacity(opacity)
-                        }
-                    }
-                }
-                .edgesIgnoringSafeArea(.all)
-                
-                // Main content scroll view with offset tracking
+                // Main content
                 ScrollView {
-                    // Invisible view to track scroll position
-                    GeometryReader { geometry in
-                        Color.clear
-                            .preference(key: ScrollOffsetPreferenceKey.self, 
-                                         value: geometry.frame(in: .named("scrollView")).minY)
-                    }
-                    .frame(height: 0)
-                    
-                    // Add top padding to account for safe area and status bar
-                    Spacer(minLength: 44)
-                    
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Header with back button and category
-                        HStack {
-                            Button(action: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    dismiss()
-                                }
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 24, weight: .medium))
+                    VStack(spacing: 0) {
+                        // Invisible view to track scroll position
+                        GeometryReader { proxy in
+                            Color.clear
+                                .preference(key: ScrollOffsetPreferenceKey.self, 
+                                           value: proxy.frame(in: .named("scrollView")).minY)
+                        }
+                        .frame(height: 0)
+                        
+                        // Content
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Header with back button and category
+                            HStack {
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        dismiss()
+                                    }
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "arrow.left")
+                                            .font(.system(size: 18, weight: .semibold))
+                                        
+                                        Text("Back")
+                                            .font(.system(size: 16, weight: .medium))
+                                    }
                                     .foregroundColor(DynamicColors.primaryPurple)
-                                    .padding(8)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
                                     .background(
-                                        Circle()
+                                        Capsule()
                                             .fill(DynamicColors.primaryPurple.opacity(0.1))
                                     )
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                                
+                                Spacer()
+                                
+                                Text(article.category.rawValue)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(DynamicColors.primaryPurple)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(DynamicColors.primaryPurple.opacity(0.1))
+                                    )
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .opacity(showStickyHeader ? 0 : 1)
+                            
+                            // Rest of your content here
+                            // Abstract header image with enhanced animation
+                            AbstractionView(seed: article.id, type: .header)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 16)
+                                .scaleEffect(appearAnimation ? 1 : 0.95)
+                                .opacity(appearAnimation ? 1 : 0)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appearAnimation)
+                                .shadow(color: DynamicColors.primaryPurple.opacity(0.2), radius: 15, x: 0, y: 5)
+                            
+                            // Article header with improved layout
+                            VStack(alignment: .leading, spacing: 20) {
+                                HStack(alignment: .top, spacing: 16) {
+                                    // Icon with enhanced background
+                                    ZStack {
+                                        Circle()
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [
+                                                        DynamicColors.lightPurple,
+                                                        DynamicColors.primaryPurple.opacity(0.7)
+                                                    ]),
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 70, height: 70)
+                                        
+                                        Circle()
+                                            .fill(colorScheme == .dark ? Color.black.opacity(0.2) : Color.white.opacity(0.4))
+                                            .frame(width: 60, height: 60)
+                                        
+                                        Image(systemName: article.icon)
+                                            .font(.system(size: 32, weight: .medium))
+                                            .foregroundColor(colorScheme == .dark ? .white : .white)
+                                    }
+                                    .shadow(color: DynamicColors.primaryPurple.opacity(0.3), radius: 10, x: 0, y: 3)
+                                    .scaleEffect(appearAnimation ? 1 : 0.8)
+                                    .opacity(appearAnimation ? 1 : 0)
+                                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appearAnimation)
+                                    
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(article.title)
+                                            .font(.system(size: 28, weight: .bold, design: .serif))
+                                            .foregroundColor(DynamicColors.textPrimary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        
+                                        // Category indicator with new style
+                                        HStack(spacing: 6) {
+                                            Circle()
+                                                .fill(DynamicColors.primaryPurple)
+                                                .frame(width: 8, height: 8)
+                                            
+                                            Text(article.category.rawValue)
+                                                .font(.caption)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(DynamicColors.primaryPurple)
+                                        }
+                                    }
+                                    .offset(x: appearAnimation ? 0 : -10)
+                                    .opacity(appearAnimation ? 1 : 0)
+                                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appearAnimation)
+                                }
+                                
+                                Text(article.description)
+                                    .font(.system(size: 18, weight: .medium, design: .serif))
+                                    .foregroundColor(DynamicColors.textSecondary)
+                                    .lineSpacing(5)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 2)
+                                    .offset(y: appearAnimation ? 0 : 10)
+                                    .opacity(appearAnimation ? 1 : 0)
+                                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: appearAnimation)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 24)
+                            
+                            // Reading time indicator with enhanced design
+                            HStack(spacing: 12) {
+                                // Reading time
+                                HStack(spacing: 8) {
+                                    Image(systemName: "clock")
+                                        .font(.footnote)
+                                        .foregroundColor(DynamicColors.primaryPurple)
+                                    
+                                    Text("\(estimateReadingTime(article.content)) min read")
+                                        .font(.footnote)
+                                        .foregroundColor(DynamicColors.textSecondary)
+                                }
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 10)
+                                .background(
+                                    Capsule()
+                                        .fill(DynamicColors.primaryPurple.opacity(0.05))
+                                )
+                                
+                                // Word count
+                                HStack(spacing: 8) {
+                                    Image(systemName: "text.word.spacing")
+                                        .font(.footnote)
+                                        .foregroundColor(DynamicColors.primaryPurple)
+                                    
+                                    Text("\(article.content.split(separator: " ").count) words")
+                                        .font(.footnote)
+                                        .foregroundColor(DynamicColors.textSecondary)
+                                }
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 10)
+                                .background(
+                                    Capsule()
+                                        .fill(DynamicColors.primaryPurple.opacity(0.05))
+                                )
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .padding(.bottom, 12)
+                            .opacity(appearAnimation ? 1 : 0)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5), value: appearAnimation)
+                            
+                            // Content divider
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            DynamicColors.primaryPurple.opacity(0.5),
+                                            DynamicColors.lightPurple.opacity(0.3),
+                                            DynamicColors.primaryPurple.opacity(0.1)
+                                        ]),
+                                        startPoint: .leading,
                             }
                             
                             Spacer()
@@ -2676,7 +2985,7 @@ struct ArticleSheetView: View {
                                 
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(article.title)
-                                        .font(.system(size: 28, weight: .bold))
+                                        .font(.system(size: 28, weight: .bold, design: .serif))
                                         .foregroundColor(DynamicColors.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                     
@@ -2698,7 +3007,7 @@ struct ArticleSheetView: View {
                             }
                             
                             Text(article.description)
-                                .font(.system(size: 18, weight: .medium))
+                                .font(.system(size: 18, weight: .medium, design: .serif))
                                 .foregroundColor(DynamicColors.textSecondary)
                                 .lineSpacing(5)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -2820,19 +3129,25 @@ struct ArticleSheetView: View {
                                 .frame(height: 1)
                                 .padding(.vertical, 24)
                             
-                            ShareLink(item: "\(article.title)\n\n\(article.description)\n\nLearn more about dreams with Lunara app!") {
-                                HStack(spacing: 8) {
+                            Button(action: {
+                                shareArticle()
+                            }) {
+                                HStack {
                                     Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 16, weight: .semibold))
-                                    Text("SHARE ARTICLE")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(.headline)
+                                    Text("Share Article")
+                                        .font(.headline)
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(DynamicColors.primaryPurple)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .fill(DynamicColors.primaryPurple)
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .strokeBorder(DynamicColors.primaryPurple, lineWidth: 1.5)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
+                                        )
                                 )
                             }
                         }
@@ -2862,15 +3177,28 @@ struct ArticleSheetView: View {
                                     dismiss()
                                 }
                             }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 24, weight: .medium))
-                                    .foregroundColor(DynamicColors.primaryPurple)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.left")
+                                        .font(.system(size: 18, weight: .semibold))
+                                    
+                                    Text("Back")
+                                        .font(.system(size: 16, weight: .medium))
+                                }
+                                .foregroundColor(DynamicColors.primaryPurple)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(
+                                    Capsule()
+                                        .fill(DynamicColors.primaryPurple.opacity(0.1))
+                                )
                             }
+                            .buttonStyle(ScaleButtonStyle())
                             
                             Spacer()
                             
                             Text(article.title)
                                 .font(.headline)
+                                .fontWeight(.semibold)
                                 .lineLimit(1)
                                 .foregroundColor(DynamicColors.textPrimary)
                             
@@ -2890,24 +3218,27 @@ struct ArticleSheetView: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
                         .background(
+                            .ultraThinMaterial
+                        )
+                        .background(
                             Rectangle()
                                 .fill(colorScheme == .dark ? 
-                                     Color(UIColor.systemBackground).opacity(0.9) : 
-                                     Color.white.opacity(0.95))
-                                .background(
-                                    Material.ultraThinMaterial
-                                )
-                                .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 5)
+                                     Color(UIColor.systemBackground).opacity(0.95) : 
+                                     Color.white.opacity(0.98))
+                                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
                         )
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
+                .zIndex(100) // Ensure the header is always on top
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showStickyHeader)
             }
             
             // Floating action button for sharing
             if showFloatingButton {
-                ShareLink(item: "\(article.title)\n\n\(article.description)\n\nLearn more about dreams with Lunara app!") {
+                Button(action: {
+                    shareArticle()
+                }) {
                     ZStack {
                         Circle()
                             .fill(
@@ -2933,16 +3264,33 @@ struct ArticleSheetView: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: showFloatingButton)
             }
         }
+        .navigationBarHidden(true)
         .onAppear {
             // Trigger animations
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 appearAnimation = true
             }
         }
-        // Handle bottom edge rounding and presentation settings
-        .background(DynamicColors.backgroundPrimary)
-        .cornerRadius(20, corners: [.topLeft, .topRight])
-        .edgesIgnoringSafeArea(.bottom)
+    }
+    
+    // Share article functionality
+    private func shareArticle() {
+        // Create share content
+        let shareText = "\(article.title)\n\n\(article.description)\n\nLearn more about dreams with Lunara app!"
+        let shareContent = [shareText]
+        
+        // Create activity view controller
+        let activityViewController = UIActivityViewController(
+            activityItems: shareContent,
+            applicationActivities: nil
+        )
+        
+        // Present the activity view controller
+        UIApplication.shared.windows.first?.rootViewController?.present(
+            activityViewController,
+            animated: true,
+            completion: nil
+        )
     }
     
     // Estimate reading time based on content length
@@ -2967,386 +3315,6 @@ struct ArticleSheetView: View {
             return ["Sleep Labs", "Dream Statistics", "Latest Studies", "Technology", "Research Methods"]
         }
     }
-}
-
-// Helper extension for corner radius on specific corners
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-}
-
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
-    }
-}
-
-// Update LearnView to use sheets for article presentation
-struct LearnView: View {
-    @Environment(\.colorScheme) var colorScheme
-    @State private var showArticleCatalog = false
-    @State private var showDailyRitual = false
-    @State private var showLucidDreamingLesson = false
-    @State private var showDreamFact = false
-    @State private var searchText: String = ""
-    @State private var selectedCategory: DreamArticle.ArticleCategory? = nil
-    @State private var expandedArticle: UUID? = nil
-    @State private var selectedArticle: DreamArticle? = nil
-    @State private var showArticleSheet = false
-    
-    private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
-    private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
-    
-    private let columns = [
-        GridItem(.flexible())
-    ]
-    
-    private var filteredArticles: [DreamArticle] {
-        var articles = DreamArticle.allArticles
-        
-        // Apply category filter if selected
-        if let category = selectedCategory {
-            articles = articles.filter { $0.category == category }
-        }
-        
-        // Apply search text filter if not empty
-        if !searchText.isEmpty {
-            articles = articles.filter {
-                $0.title.lowercased().contains(searchText.lowercased()) ||
-                $0.description.lowercased().contains(searchText.lowercased())
-            }
-        }
-        
-        return articles
-    }
-    
-    // Random article for the "Article of the Day" section
-    private var articleOfTheDay: DreamArticle {
-        DreamArticle.allArticles.randomElement() ?? DreamArticle.allArticles[0]
-    }
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                DynamicColors.backgroundPrimary.edgesIgnoringSafeArea(.all)
-                
-                VStack(spacing: 0) {
-                    // Header section with title - fixed at top
-                    TopBarView(
-                        title: "Learn",
-                        primaryPurple: DynamicColors.primaryPurple,
-                        colorScheme: colorScheme,
-                        rightButtons: [
-                            TopBarButton(icon: "questionmark.circle", action: {
-                                if let url = URL(string: "https://multumgrp.tech/lunara-help") {
-                                    UIApplication.shared.open(url)
-                                }
-                            })
-                        ]
-                    )
-                    
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            // Search Bar
-                            searchBar
-                                .padding(.horizontal, 16)
-                                .padding(.top, 16)
-                            
-                            // Category Filters
-                            categoryFilters
-                                .padding(.horizontal, 16)
-                            
-                            // Lucid Dreaming Lesson Tile
-                            NavigationLink(
-                                destination: LucidDreamingLessonDetailView(),
-                                isActive: $showLucidDreamingLesson
-                            ) {
-                                Button(action: {
-                                    showLucidDreamingLesson = true
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                }) {
-                                    LucidDreamingLessonTile(onButtonTap: {
-                                        showLucidDreamingLesson = true
-                                    })
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            .padding(.horizontal, 16)
-                            
-                            // Daily Dream Fact Tile
-                            NavigationLink(
-                                destination: DailyDreamFactDetailView(),
-                                isActive: $showDreamFact
-                            ) {
-                                Button(action: {
-                                    showDreamFact = true
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                }) {
-                                    DailyDreamFactTile(onButtonTap: {
-                                        showDreamFact = true
-                                    })
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            .padding(.horizontal, 16)
-                            
-                            // Article of the Day
-                            ArticleOfTheDay(
-                                article: articleOfTheDay,
-                                selectedArticle: $selectedArticle
-                            )
-                                .padding(.horizontal, 16)
-                            
-                            // Article Grid
-                            articleGrid
-                                .padding(.horizontal, 16)
-                            
-                            Spacer(minLength: 80)
-                        }
-                        .padding(.bottom, 24)
-                    }
-                }
-            }
-            .navigationBarHidden(true)
-            .fullScreenCover(item: $selectedArticle) { article in
-                ArticleSheetView(article: article)
-                    .edgesIgnoringSafeArea(.all)
-            }
-        }
-    }
-    
-    private var searchBar: some View {
-        HStack {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(DynamicColors.gray3)
-            
-            TextField("Search articles...", text: $searchText)
-                .foregroundColor(DynamicColors.textPrimary)
-            
-            if !searchText.isEmpty {
-                Button(action: {
-                    searchText = ""
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(DynamicColors.gray3)
-                }
-            }
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(DynamicColors.backgroundSecondary)
-        )
-    }
-    
-    private var categoryFilters: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                // All categories option
-                CategoryPill(
-                    name: "All",
-                    isSelected: selectedCategory == nil,
-                    action: { selectedCategory = nil }
-                )
-                
-                // Individual category pills
-                ForEach(DreamArticle.ArticleCategory.allCases, id: \.self) { category in
-                    CategoryPill(
-                        name: category.rawValue,
-                        isSelected: selectedCategory == category,
-                        action: {
-                            selectedCategory = category
-                        }
-                    )
-                }
-            }
-            .padding(.vertical, 8)
-        }
-    }
-    
-    private var articleGrid: some View {
-        LazyVGrid(columns: columns, spacing: 20) {
-            ForEach(filteredArticles) { article in
-                ArticleCard(
-                    article: article,
-                    selectedArticle: $selectedArticle
-                )
-            }
-        }
-    }
-}
-
-struct CategoryPill: View {
-    let name: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(name)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isSelected ? .white : DynamicColors.primaryPurple)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? DynamicColors.primaryPurple : DynamicColors.primaryPurple.opacity(0.1))
-                )
-        }
-    }
-}
-
-struct ArticleCard: View {
-    let article: DreamArticle
-    @Environment(\.colorScheme) var colorScheme
-    @Binding var selectedArticle: DreamArticle?
-    
-    var body: some View {
-        Button(action: {
-            selectedArticle = article
-        }) {
-            VStack(alignment: .leading, spacing: 16) {
-                // Header with icon and category
-                HStack {
-                    // Icon
-                    ZStack {
-                        Circle()
-                            .fill(DynamicColors.lightPurple.opacity(colorScheme == .dark ? 0.3 : 1.0))
-                            .frame(width: 40, height: 40)
-                        Image(systemName: article.icon)
-                            .font(.system(size: 20))
-                            .foregroundColor(DynamicColors.primaryPurple)
-                    }
-                    
-                    Spacer()
-                    
-                    // Category pill
-                    Text(article.category.rawValue)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(DynamicColors.primaryPurple)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(DynamicColors.primaryPurple.opacity(0.1))
-                        )
-                }
-                
-                // Title
-                Text(article.title)
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(DynamicColors.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-                
-                // Description
-                Text(article.description.trimmingCharacters(in: .whitespacesAndNewlines))
-                    .font(.subheadline)
-                    .foregroundColor(DynamicColors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-                
-                Spacer()
-                
-                // Read more button
-                HStack {
-                    Spacer()
-                    Text("Read Article")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(DynamicColors.primaryPurple)
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(DynamicColors.primaryPurple)
-                }
-            }
-            .padding(16)
-            .frame(height: 200)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(DynamicColors.primaryPurple.opacity(0.15), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct ArticleListItem: View {
-    let article: DreamArticle
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            // Header with icon and title
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(DynamicColors.lightPurple.opacity(colorScheme == .dark ? 0.3 : 1.0))
-                        .frame(width: 50, height: 50)
-                    
-                    Image(systemName: article.icon)
-                        .font(.system(size: 24))
-                        .foregroundColor(DynamicColors.primaryPurple)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(article.title)
-                        .font(.headline)
-                        .foregroundColor(DynamicColors.textPrimary)
-                    
-                    Text(article.category.rawValue)
-                        .font(.subheadline)
-                        .foregroundColor(DynamicColors.primaryPurple)
-                }
-                
-                Spacer()
-            }
-            
-            // Description
-            Text(article.description)
-                .font(.body)
-                .foregroundColor(DynamicColors.textSecondary)
-                .multilineTextAlignment(.leading)
-            
-            // Read More button
-            Button(action: {
-                if let url = URL(string: article.link) {
-                    UIApplication.shared.open(url)
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 16, weight: .semibold))
-                    Text("SHOW MORE")
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundColor(DynamicColors.primaryPurple)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 24)
-                        .strokeBorder(DynamicColors.primaryPurple, lineWidth: 1)
-                )
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-        }
-        .padding(.vertical, 16)
-        .modifier(CardStyle())
-    }
-    
-    @Environment(\.colorScheme) var colorScheme
 }
 
 // Preference key to track scroll offset
@@ -3382,33 +3350,27 @@ struct ArticleContentView: View {
                 
                 switch block.type {
                 case .header1:
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(block.text)
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: 32, weight: .bold, design: .serif))
                             .foregroundColor(DynamicColors.textPrimary)
-                            .padding(.top, 32)
+                            .padding(.top, 16)
                         
-                        // Subtle accent under headers
+                        // Decorative accent line under main header
                         Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        DynamicColors.primaryPurple,
-                                        DynamicColors.primaryPurple.opacity(0.6),
-                                        DynamicColors.primaryPurple.opacity(0.2)
-                                    ]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: 120, height: 3)
+                            .fill(LinearGradient(
+                                gradient: Gradient(colors: [DynamicColors.primaryPurple, DynamicColors.primaryPurple.opacity(0.3)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ))
+                            .frame(width: 80, height: 3)
                             .padding(.bottom, 8)
                     }
                     
                 case .header2:
                     VStack(alignment: .leading, spacing: 6) {
                         Text(block.text)
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 24, weight: .bold, design: .serif))
                             .foregroundColor(DynamicColors.textPrimary)
                             .padding(.top, 28)
                         
@@ -3421,16 +3383,17 @@ struct ArticleContentView: View {
                     
                 case .header3:
                     Text(block.text)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 20, weight: .semibold, design: .serif))
                         .foregroundColor(DynamicColors.primaryPurple)
                         .padding(.top, 16)
                         .padding(.bottom, 4)
                     
                 case .paragraph:
                     Text(block.text)
-                        .font(.system(size: 17, weight: .regular))
+                        .font(.system(size: 17, weight: .regular, design: .serif))
                         .foregroundColor(DynamicColors.textPrimary)
                         .lineSpacing(8)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.vertical, 4)
                     
                 case .bulletPoint:
@@ -3448,7 +3411,7 @@ struct ArticleContentView: View {
                         .padding(.top, 5)
                         
                         Text(block.text)
-                            .font(.system(size: 17, weight: .regular))
+                            .font(.system(size: 17, weight: .regular, design: .serif))
                             .foregroundColor(DynamicColors.textPrimary)
                             .lineSpacing(6)
                             .fixedSize(horizontal: false, vertical: true)
@@ -3710,6 +3673,7 @@ struct AbstractionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
+
 
 #Preview {
     LearnView()
