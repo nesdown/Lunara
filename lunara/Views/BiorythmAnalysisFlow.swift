@@ -215,7 +215,7 @@ struct BiorythmAnalysisFlow: View {
                 .lineSpacing(2)
                 .padding(.bottom, 8)
             
-            ForEach(DreamFrequency.allCases, id: \.self) { frequency in
+            ForEach(BiorythmDreamFrequency.allCases, id: \.self) { frequency in
                 Button {
                     viewModel.dreamFrequency = frequency
                 } label: {
@@ -847,7 +847,7 @@ struct ProgressBar: View {
 class BiorythmAnalysisViewModel: ObservableObject {
     @Published var currentStep = 1
     @Published var birthDate = Calendar.current.date(byAdding: .year, value: -30, to: Date()) ?? Date()
-    @Published var dreamFrequency: DreamFrequency?
+    @Published var dreamFrequency: BiorythmDreamFrequency?
     @Published var nightmareFrequency: NightmareFrequency?
     @Published var sleepDuration: SleepDuration?
     
@@ -920,7 +920,7 @@ class BiorythmAnalysisViewModel: ObservableObject {
         let daysSinceBirth = Calendar.current.dateComponents([.day], from: birthDate, to: Date()).day ?? 0
         var baseNumber = (daysSinceBirth % 9) + 1
         
-        // Apply adjustments as before
+        // Apply adjustments with renamed enum
         if dreamFrequency == .never {
             baseNumber = max(1, baseNumber - 2)
         } else if dreamFrequency == .eachNight {
@@ -1462,13 +1462,6 @@ class BiorythmAnalysisViewModel: ObservableObject {
 }
 
 // MARK: - Enums
-enum DreamFrequency: String, CaseIterable {
-    case never = "Never"
-    case rarely = "Rarely"
-    case severalTimesAWeek = "Several Times a Week"
-    case eachNight = "Each Night"
-}
-
 enum NightmareFrequency: String, CaseIterable {
     case eachOne = "Each one"
     case oneIn3To5 = "One in 3-5"
@@ -1481,6 +1474,13 @@ enum SleepDuration: String, CaseIterable {
     case fiveTo7Hours = "5-7 hours"
     case sevenTo9Hours = "7-9 hours"
     case moreThan9Hours = "> 9 hours"
+}
+
+enum BiorythmDreamFrequency: String, CaseIterable {
+    case never = "Never"
+    case rarely = "Rarely"
+    case severalTimesAWeek = "Several Times a Week"
+    case eachNight = "Each Night"
 }
 
 struct BiorythmAnalysisFlow_Previews: PreviewProvider {

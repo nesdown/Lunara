@@ -176,6 +176,7 @@ struct ProfileView: View {
     @State private var showReminderTimePicker = false
     @State private var editingName = ""
     @State private var reminderDate = Calendar.current.date(from: DateComponents(hour: 8, minute: 0)) ?? Date()
+    @State private var showingSubscription = false
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -262,7 +263,8 @@ struct ProfileView: View {
                                     title: "Upgrade to Premium",
                                     subtitle: "Get access to all features",
                                     action: {
-                                        // Upgrade action
+                                        // Present the SubscriptionView as fullscreen cover
+                                        showingSubscription = true
                                     }
                                 )
                             }
@@ -514,6 +516,9 @@ struct ProfileView: View {
                     saveReminderTime()
                     scheduleDreamReminders()
                 })
+            }
+            .fullScreenCover(isPresented: $showingSubscription) {
+                SubscriptionView()
             }
             .onAppear {
                 checkNotificationAuthorizationStatus()
