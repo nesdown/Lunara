@@ -16,10 +16,10 @@ struct lunaraApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     
     init() {
-        // Register default values
-        UserDefaults.standard.register(defaults: [
-            "hasCompletedOnboarding": false
-        ])
+        // Only register defaults if the key doesn't exist yet
+        if UserDefaults.standard.object(forKey: "hasCompletedOnboarding") == nil {
+            UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        }
     }
     
     var body: some Scene {

@@ -4,9 +4,9 @@ import StoreKit
 
 // MARK: - OnboardingViewModel
 class OnboardingViewModel: ObservableObject {
+    @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding = false
     @Published var currentPage = 0
     @Published var userName = ""
-    @Published var hasCompletedOnboarding = false
     @Published var shouldShowNotificationPermission = false
     @Published var showSubscription = false
     
@@ -20,7 +20,10 @@ class OnboardingViewModel: ObservableObject {
     // Quiz responses
     @Published var dreamFrequency: OnboardingDreamFrequency = .sometimes
     @Published var dreamType: DreamType = .adventure
-    @Published var dreamRecall: DreamRecall = .sometimes
+    @Published var dreamRecall: DreamRecall = .moderate
+    
+    // Add a new property to track if onboarding data has been saved
+    @Published var onboardingDataSaved = false
     
     // Colors
     let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
@@ -119,18 +122,44 @@ class OnboardingViewModel: ObservableObject {
         // Page 8: Final Onboarding (Feature - leads to subscription)
         OnboardingPage(
             type: .final,
-            title: "Your Dream Journey Awaits",
-            description: "You're all set! Unlock the full potential of your dreams with Lunara Premium.",
-            imageName: "star.circle.fill",
+            title: "Congratulations!",
+            description: "You've completed the onboarding process. Your personal dream exploration journey is about to begin!",
+            imageName: "sparkles",
             backgroundElements: [
                 BackgroundElement(imageName: "moon.stars.fill", size: 40, position: .topLeading, offset: CGPoint(x: 40, y: 120)),
-                BackgroundElement(imageName: "sparkles", size: 30, position: .topTrailing, offset: CGPoint(x: -30, y: 160)),
+                BackgroundElement(imageName: "star.fill", size: 30, position: .topTrailing, offset: CGPoint(x: -30, y: 160)),
                 BackgroundElement(imageName: "wand.and.stars", size: 36, position: .bottomLeading, offset: CGPoint(x: 60, y: -140))
             ],
             animation: .float,
-            showSubscriptionButton: true
+            showSubscriptionButton: false
         )
     ]
+    
+    init() {
+        // Ensure onboarding is not marked as completed on init
+        hasCompletedOnboarding = false
+        
+        // Check if we have a saved name
+        if let savedName = UserDefaults.standard.string(forKey: "userName") {
+            userName = savedName
+        }
+        
+        // Load saved quiz responses if they exist
+        if let savedFrequency = UserDefaults.standard.string(forKey: "dreamFrequency"),
+           let frequency = OnboardingDreamFrequency(rawValue: savedFrequency) {
+            dreamFrequency = frequency
+        }
+        
+        if let savedType = UserDefaults.standard.string(forKey: "dreamType"),
+           let type = DreamType(rawValue: savedType) {
+            dreamType = type
+        }
+        
+        if let savedRecall = UserDefaults.standard.string(forKey: "dreamRecall"),
+           let recall = DreamRecall(rawValue: savedRecall) {
+            dreamRecall = recall
+        }
+    }
     
     func completeOnboarding() {
         // Save user name
@@ -146,9 +175,8 @@ class OnboardingViewModel: ObservableObject {
         UserDefaults.standard.set(dreamType.rawValue, forKey: "dreamType")
         UserDefaults.standard.set(dreamRecall.rawValue, forKey: "dreamRecall")
         
-        // Mark onboarding as completed
-        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-        hasCompletedOnboarding = true
+        // Mark that we've saved the data
+        onboardingDataSaved = true
     }
     
     func handleNextAction() {
@@ -163,7 +191,10 @@ class OnboardingViewModel: ObservableObject {
         
         // If we're on the last page
         if currentPage == pages.count - 1 {
-            // Show subscription view instead of completing onboarding
+            // Complete onboarding first
+            completeOnboarding()
+            
+            // Show subscription view immediately without delay
             showSubscription = true
         } else {
             // Move to the next page
@@ -219,26 +250,22 @@ enum OnboardingDreamFrequency: String, CaseIterable, Identifiable {
     case rarely = "Rarely"
     case sometimes = "Sometimes"
     case often = "Often"
-    case veryOften = "Very Often"
     
     var id: String { self.rawValue }
 }
 
 enum DreamType: String, CaseIterable, Identifiable {
     case flying = "Flying Dreams"
-    case falling = "Falling Dreams"
     case adventure = "Adventure Dreams"
     case nightmare = "Nightmares"
-    case lucid = "Lucid Dreams"
     
     var id: String { self.rawValue }
 }
 
 enum DreamRecall: String, CaseIterable, Identifiable {
     case vague = "Very Vague"
-    case sometimes = "Some Details"
-    case clear = "Clear Details"
-    case vivid = "Extremely Vivid"
+    case moderate = "Moderate Details"
+    case vivid = "Vivid Details"
     
     var id: String { self.rawValue }
 }
@@ -303,13 +330,19 @@ struct OnboardingFlow: View {
     var body: some View {
         ZStack {
             // Main content
-            onboardingContent
-                .background(backgroundGradient)
+                onboardingContent
+                    .background(backgroundGradient)
                 .fullScreenCover(isPresented: $viewModel.showSubscription) {
+                    // When subscription view is dismissed
+                    if viewModel.onboardingDataSaved {
+                        // Mark onboarding as completed
+                        viewModel.hasCompletedOnboarding = true
+                    }
+                } content: {
                     SubscriptionView()
-                }
-                .onChange(of: isNameFieldFocused) { _, isFocused in
-                    viewModel.isTextFieldFocused = isFocused
+        }
+        .onChange(of: isNameFieldFocused) { _, isFocused in
+            viewModel.isTextFieldFocused = isFocused
                 }
         }
     }
@@ -333,54 +366,51 @@ struct OnboardingFlow: View {
     }
     
     private var bottomBar: some View {
-        HStack {
-            // Page indicator
-            PageIndicator(currentPage: viewModel.currentPage, pageCount: viewModel.pages.count)
-            
-            Spacer()
-            
-            // Next/Complete button
-            Button(action: viewModel.handleNextAction) {
+            HStack {
+                // Page indicator
+                PageIndicator(currentPage: viewModel.currentPage, pageCount: viewModel.pages.count)
+                
+                Spacer()
+                
+                // Next/Complete button
+                Button(action: viewModel.handleNextAction) {
                 let buttonText = getButtonText()
                 
                 HStack(spacing: 8) {
                     Text(buttonText)
                         .font(.system(size: 17, weight: .semibold))
                     
-                    if viewModel.currentPage == viewModel.pages.count - 1 {
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 14))
-                    } else {
+                    if viewModel.currentPage != viewModel.pages.count - 1 {
                         Image(systemName: "arrow.right")
                             .font(.system(size: 14))
                     }
                 }
-                .foregroundColor(.white)
+                        .foregroundColor(.white)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 14)
-                .background(
-                    Capsule()
+                        .background(
+                            Capsule()
                         .fill(viewModel.currentPage == viewModel.pages.count - 1 ? 
                              LinearGradient(gradient: Gradient(colors: [viewModel.primaryPurple, viewModel.darkPurple]), startPoint: .leading, endPoint: .trailing) : 
                              LinearGradient(gradient: Gradient(colors: [viewModel.primaryPurple, viewModel.primaryPurple]), startPoint: .leading, endPoint: .trailing))
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                )
-                .shadow(color: viewModel.darkPurple.opacity(0.5), radius: 8, x: 0, y: 4)
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .shadow(color: viewModel.darkPurple.opacity(0.5), radius: 8, x: 0, y: 4)
+                }
+                .buttonStyle(ScaleButtonStyle())
             }
-            .buttonStyle(ScaleButtonStyle())
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 20)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
     }
     
     private func getButtonText() -> String {
         let page = viewModel.pages[viewModel.currentPage]
         
         if viewModel.currentPage == viewModel.pages.count - 1 {
-            return "Unlock Premium"
+            return "Continue"
         } else if page.type == .quiz {
             return "Continue"
         } else {
@@ -411,7 +441,7 @@ struct PageView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Main content area
-            ZStack {
+                ZStack {
                 // Background elements
                 ForEach(0..<page.backgroundElements.count, id: \.self) { index in
                     let element = page.backgroundElements[index]
@@ -510,12 +540,6 @@ struct PageView: View {
                     viewModel.iconScale = 1
                 }
                 viewModel.isAnimating = true
-                
-                if page.type == .nameInput {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        isInputFieldFocused = true
-                    }
-                }
             }
         }
     }
@@ -542,7 +566,7 @@ struct PageView: View {
             
             Image(systemName: page.imageName)
                 .font(.system(size: 80))
-                .foregroundColor(.white)
+                    .foregroundColor(.white)
                 .opacity(viewModel.iconOpacity)
                 .scaleEffect(viewModel.iconScale)
                 .modifier(getAnimationModifier(for: page.animation))
@@ -622,24 +646,28 @@ struct PageView: View {
                     .foregroundColor(.white.opacity(0.7))
                     .padding(.leading, 16)
                 
-                TextField("Your name", text: $viewModel.userName)
-                    .font(.system(size: 17))
-                    .foregroundColor(.white)
+            TextField("Your name", text: $viewModel.userName)
+                .font(.system(size: 17))
+                .foregroundColor(.white)
                     .padding(.vertical, 16)
                     .padding(.trailing, 16)
                     .autocapitalization(.words)
                     .focused($isInputFieldFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        isInputFieldFocused = false
+                    }
             }
-            .background(
-                RoundedRectangle(cornerRadius: 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
                     .fill(viewModel.primaryPurple.opacity(0.3))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(viewModel.lightPurple.opacity(0.5), lineWidth: 1)
-            )
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(viewModel.lightPurple.opacity(0.5), lineWidth: 1)
+                )
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
         }
     }
     
