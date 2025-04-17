@@ -1430,7 +1430,6 @@ struct SymbolsLibraryView: View {
     @State private var selectedCategory: SymbolCategory? = nil
     @State private var searchText = ""
     @State private var selectedSymbol: DreamSymbol? = nil
-    @State private var showingSymbolDetail = false
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -1518,15 +1517,9 @@ struct SymbolsLibraryView: View {
                 } else {
                     List {
                         ForEach(filteredSymbols) { symbol in
-                            SymbolRow(symbol: symbol)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    // Give haptic feedback
-                                    HapticManager.shared.itemSelected()
-                                    
-                                    selectedSymbol = symbol
-                                    showingSymbolDetail = true
-                                }
+                            SymbolRow(symbol: symbol, onTap: {
+                                selectedSymbol = symbol
+                            })
                         }
                         .listRowBackground(colorScheme == .dark ? Color(white: 0.15) : .white)
                         .listRowSeparator(.hidden)
@@ -1555,10 +1548,8 @@ struct SymbolsLibraryView: View {
                 }
             })
             .background(Color(.systemBackground))
-            .sheet(isPresented: $showingSymbolDetail) {
-                if let symbol = selectedSymbol {
-                    SymbolDetailView(symbol: symbol)
-                }
+            .sheet(item: $selectedSymbol) { symbol in
+                SymbolDetailView(symbol: symbol)
             }
         }
     }
@@ -1598,6 +1589,8 @@ struct SymbolsLibraryView: View {
     // Symbol Row Component
     struct SymbolRow: View {
         let symbol: DreamSymbol
+        let onTap: () -> Void
+        @State private var isPressed = false
         
         private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
         private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -1632,18 +1625,44 @@ struct SymbolsLibraryView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
+                    .opacity(isPressed ? 0.7 : 0.5)
+                    .offset(x: isPressed ? 5 : 0)
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
                     .fill(Color(.systemBackground))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(lightPurple, lineWidth: 1)
             )
-            .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(lightPurple, lineWidth: isPressed ? 2 : 1)
+            )
+            .shadow(color: Color.black.opacity(isPressed ? 0.01 : 0.03), radius: isPressed ? 3 : 5, x: 0, y: isPressed ? 1 : 2)
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Give haptic feedback
+                HapticManager.shared.itemSelected()
+                
+                // Show press effect
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                    isPressed = true
+                }
+                
+                // Delay to show animation before showing details
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                        isPressed = false
+                    }
+                    
+                    // Call the onTap closure
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        onTap()
+                    }
+                }
+            }
         }
     }
 }
@@ -1990,6 +2009,7 @@ struct JournalView: View {
     @State private var isAppearing = false
     @State private var tabChanged = false
     @State private var calendarMonthChanged = false
+    @State private var exploreButtonScale: CGFloat = 1.0
     
     // Mock data - replace with Core Data
     @State private var dreams: [DreamEntry] = []
@@ -2099,6 +2119,9 @@ struct JournalView: View {
             }
             .sheet(isPresented: $showingBiographyInput) {
                 BiographyInputView(parentBiography: $userBiography)
+            }
+            .sheet(isPresented: $showingSymbolsLibrary) {
+                SymbolsLibraryView()
             }
             .onAppear {
                 // Load dreams when view appears
@@ -2325,6 +2348,17 @@ struct JournalView: View {
                     // Action to explore symbols
                     HapticManager.shared.buttonPress()
                     
+                    // Button animation
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                        exploreButtonScale = 0.95
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                            exploreButtonScale = 1.0
+                        }
+                    }
+                    
                     // Show symbols library
                     showingSymbolsLibrary = true
                 } label: {
@@ -2342,6 +2376,7 @@ struct JournalView: View {
                             .fill(primaryPurple)
                     )
                 }
+                .scaleEffect(exploreButtonScale)
                 .padding(.horizontal, 16)
                 .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
             }
