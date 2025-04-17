@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var selectedDream: DreamEntry?
     @State private var showBiorythmAnalysis = false
     @State private var showingSubscription = false
+    @State private var showingPromoModal = false
     
     // Custom colors
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
@@ -118,10 +119,13 @@ struct HomeView: View {
                         colorScheme: colorScheme,
                         rightButtons: [
                             TopBarButton(icon: "gift.fill", action: {
-                                // No functionality for now
+                                HapticManager.shared.buttonPress()
+                                showingPromoModal = true
                             }),
-                            TopBarButton(icon: "star.fill", action: {
-                                // No functionality for now
+                            TopBarButton(icon: "crown.fill", action: {
+                                // Show subscription view when crown icon is clicked
+                                HapticManager.shared.buttonPress()
+                                showingSubscription = true
                             }),
                             TopBarButton(icon: isDarkMode ? "sun.max.fill" : "moon.fill", action: {
                                 // Toggle between light and dark mode
@@ -198,7 +202,7 @@ struct HomeView: View {
                                         Circle()
                                             .fill(lightPurple)
                                             .frame(width: 70, height: 70)
-                                        Image(systemName: "star.fill")
+                                        Image(systemName: "crown.fill")
                                             .font(.system(size: 28))
                                             .foregroundColor(primaryPurple)
                                     }
@@ -227,7 +231,7 @@ struct HomeView: View {
                                     showingSubscription = true
                                 } label: {
                                     HStack(spacing: 8) {
-                                        Image(systemName: "star.fill")
+                                        Image(systemName: "crown.fill")
                                             .font(.system(size: 16, weight: .semibold))
                                         Text("UPGRADE TO PREMIUM")
                                             .font(.system(size: 16, weight: .semibold))
@@ -460,6 +464,11 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showingSubscription) {
             SubscriptionView()
         }
+        .sheet(isPresented: $showingPromoModal) {
+            ShortPromoView(onDismiss: {
+                showingPromoModal = false
+            })
+        }
         .fullScreenCover(isPresented: $showingDreamDetails, onDismiss: {
             print("Dream details dismissed in HomeView")
             // Reset selected dream when sheet is dismissed
@@ -539,6 +548,321 @@ struct HomeView: View {
             return "airplane.departure"
         default:
             return "moon.stars.fill"
+        }
+    }
+}
+
+struct ShortPromoView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var subscriptionService = SubscriptionService.shared
+    let onDismiss: () -> Void
+    
+    @State private var isLoading = false
+    @State private var buttonScale = 0.95
+    @State private var showGlow = false
+    @State private var elementOpacity = 0.0
+    
+    // Custom colors
+    private let backgroundGradientStart = Color(red: 48/255, green: 25/255, blue: 94/255)
+    private let backgroundGradientEnd = Color(red: 80/255, green: 49/255, blue: 149/255)
+    private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
+    
+    var body: some View {
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                gradient: Gradient(colors: [backgroundGradientStart, backgroundGradientEnd]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            // Main content
+            VStack(spacing: 16) {
+                // Gift icon
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 70, height: 70)
+                        .shadow(color: primaryPurple.opacity(0.5), radius: 10)
+                    
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: 34))
+                        .foregroundColor(primaryPurple)
+                }
+                .padding(.top, 24)
+                .opacity(elementOpacity)
+                
+                // Title
+                Text("Special Trial Offer")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 4)
+                    .opacity(elementOpacity)
+                
+                // Price
+                HStack(spacing: 10) {
+                    Text("$19.99/mo")
+                        .strikethrough()
+                        .foregroundColor(.white.opacity(0.7))
+                        .font(.system(size: 18))
+                    
+                    Text("$0.99")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("(95% OFF)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(Color(red: 95/255, green: 220/255, blue: 110/255))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.green.opacity(0.15))
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(Color.green.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                }
+                .padding(.top, 8)
+                .opacity(elementOpacity)
+                
+                // Features box
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("PREMIUM BENEFITS:")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white.opacity(0.8))
+                        .tracking(1)
+                        .padding(.bottom, 2)
+                    
+                    PromoFeatureRow(icon: "sparkles", text: "Unlimited Dream Interpretations")
+                    PromoFeatureRow(icon: "moon.fill", text: "Advanced AI Dream Analysis")
+                    PromoFeatureRow(icon: "chart.bar.fill", text: "Personalized Dream Insights")
+                    PromoFeatureRow(icon: "brain.head.profile", text: "Deep Symbolism Analysis")
+                    PromoFeatureRow(icon: "person.text.rectangle", text: "Personalized Recommendations")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.08))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .opacity(elementOpacity)
+                
+                // Limited time badge
+                HStack(spacing: 8) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                    
+                    Text("LIMITED TIME OFFER")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .tracking(0.5)
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+                .background(
+                    Capsule()
+                        .fill(Color(red: 155/255, green: 105/255, blue: 235/255).opacity(0.3))
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                )
+                .padding(.top, 8)
+                .opacity(elementOpacity)
+                
+                // Buttons
+                VStack(spacing: 12) {
+                    Button {
+                        hapticFeedback()
+                        purchasePromoSubscription()
+                    } label: {
+                        ZStack {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(1.2)
+                            } else {
+                                Text("TRY FOR $0.99")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .tracking(0.5)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 155/255, green: 105/255, blue: 235/255),
+                                    Color(red: 125/255, green: 85/255, blue: 205/255)
+                                ]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
+                            )
+                        )
+                        .shadow(color: primaryPurple.opacity(0.4), radius: 5, x: 0, y: 3)
+                    }
+                    .scaleEffect(buttonScale)
+                    .opacity(elementOpacity)
+                    
+                    Button {
+                        dismiss()
+                        onDismiss()
+                    } label: {
+                        Text("Maybe Later")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .opacity(elementOpacity)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                
+                // Terms text
+                Text("$0.99 - introductory offer, yearly subscription automatically renews after first month.")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 16)
+                    .padding(.horizontal, 20)
+                    .opacity(elementOpacity)
+            }
+            
+            // Close button
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                        onDismiss()
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 30, height: 30)
+                            
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(16)
+                }
+                Spacer()
+            }
+        }
+        .onAppear {
+            loadPromoProduct()
+            startAnimations()
+        }
+    }
+    
+    private func startAnimations() {
+        withAnimation(.easeIn(duration: 0.5)) {
+            elementOpacity = 1.0
+        }
+        
+        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            buttonScale = 1.0
+        }
+    }
+    
+    private func hapticFeedback() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+    
+    private func loadPromoProduct() {
+        Task {
+            await subscriptionService.loadPromoProduct()
+        }
+    }
+    
+    private func purchasePromoSubscription() {
+        guard !isLoading else { return }
+        
+        let productID = "lunara.subscription.yearlypromo"
+        
+        guard let product = subscriptionService.getProduct(for: productID) else {
+            print("Product not found: \(productID)")
+            
+            if subscriptionService.products.isEmpty {
+                Task {
+                    await subscriptionService.loadProducts()
+                    await subscriptionService.loadPromoProduct()
+                }
+            }
+            return
+        }
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            buttonScale = 0.96
+        }
+        
+        isLoading = true
+        
+        Task {
+            do {
+                let success = try await subscriptionService.purchase(product)
+                
+                await MainActor.run {
+                    isLoading = false
+                    
+                    if success {
+                        dismiss()
+                        onDismiss()
+                    } else {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            buttonScale = 1.0
+                        }
+                    }
+                }
+            } catch {
+                print("Purchase error: \(error.localizedDescription)")
+                
+                await MainActor.run {
+                    isLoading = false
+                    
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        buttonScale = 1.0
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct PromoFeatureRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 24, height: 24)
+            
+            Text(text)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .lineLimit(1)
         }
     }
 }
