@@ -493,30 +493,123 @@ struct BiorythmAnalysisFlow: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        HStack(alignment: .bottom, spacing: 4) {
-                            ForEach(0..<24, id: \.self) { hour in
-                                let height = getEnergyHeight(for: hour, biorhythmNumber: Int(viewModel.biorythmNumber) ?? 7)
-                                
-                                VStack {
-                                    Rectangle()
-                                        .fill(getEnergyColor(height: height))
-                                        .frame(height: height)
-                                        .frame(maxWidth: .infinity)
-                                        .cornerRadius(4)
-                                    
-                                    if hour % 6 == 0 {
-                                        Text("\(hour)")
-                                            .font(.system(size: 8))
-                                            .foregroundColor(.secondary)
+                        ZStack(alignment: .bottom) {
+                            // Background grid
+                            VStack(spacing: 0) {
+                                ForEach(0..<4) { i in
+                                    Divider()
+                                        .background(Color.gray.opacity(0.3))
+                                        .frame(height: 1)
+                                    if i < 3 {
+                                        Spacer()
+                                            .frame(height: 30)
                                     }
                                 }
                             }
+                            .frame(height: 110)
+                            
+                            // Energy line chart
+                            GeometryReader { geometry in
+                                let width = geometry.size.width
+                                let pointSpacing = width / 24
+                                let bioNumber = Int(viewModel.biorythmNumber) ?? 7
+                                
+                                // Path for the energy line
+                                Path { path in
+                                    // Start at the first point
+                                    let startHeight = getEnergyHeight(for: 0, biorhythmNumber: bioNumber)
+                                    let startY = 110 - startHeight
+                                    path.move(to: CGPoint(x: 0, y: startY))
+                                    
+                                    // Add points for each hour
+                                    for hour in 1..<24 {
+                                        let height = getEnergyHeight(for: hour, biorhythmNumber: bioNumber)
+                                        let x = CGFloat(hour) * pointSpacing
+                                        let y = 110 - height
+                                        
+                                        // Use a curve for smoother transitions
+                                        let prevHeight = getEnergyHeight(for: hour-1, biorhythmNumber: bioNumber)
+                                        let prevY = 110 - prevHeight
+                                        let prevX = CGFloat(hour-1) * pointSpacing
+                                        
+                                        let controlPoint1 = CGPoint(x: prevX + (pointSpacing * 0.5), y: prevY)
+                                        let controlPoint2 = CGPoint(x: x - (pointSpacing * 0.5), y: y)
+                                        
+                                        path.addCurve(to: CGPoint(x: x, y: y),
+                                                     control1: controlPoint1,
+                                                     control2: controlPoint2)
+                                    }
+                                }
+                                .trim(from: 0, to: 1)
+                                .stroke(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [primaryPurple.opacity(0.7), primaryPurple]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ),
+                                    style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+                                )
+                                .shadow(color: primaryPurple.opacity(0.3), radius: 3, x: 0, y: 2)
+                                .animation(.easeInOut(duration: 1.5), value: bioNumber)
+                                
+                                // Peak indicators
+                                ForEach(0..<24, id: \.self) { hour in
+                                    if isPeakHour(hour: hour, biorhythmNumber: bioNumber) {
+                                        let height = getEnergyHeight(for: hour, biorhythmNumber: bioNumber)
+                                        let x = CGFloat(hour) * pointSpacing
+                                        let y = 110 - height
+                                        
+                                        Circle()
+                                            .fill(Color.yellow)
+                                            .frame(width: 8, height: 8)
+                                            .position(x: x, y: y)
+                                            .shadow(color: Color.yellow.opacity(0.6), radius: 2, x: 0, y: 0)
+                                        
+                                        Image(systemName: "star.fill")
+                                            .font(.system(size: 8))
+                                            .foregroundColor(.yellow)
+                                            .position(x: x, y: y - 15)
+                                    }
+                                }
+                                
+                                // Time markers at bottom - add only a few to avoid clutter
+                                ForEach([0, 6, 12, 18, 23], id: \.self) { hour in
+                                    let x = CGFloat(hour) * pointSpacing
+                                    
+                                    Text(formatHour(hour))
+                                        .font(.system(size: 8))
+                                        .foregroundColor(.secondary)
+                                        .position(x: x, y: 125)
+                                }
+                            }
+                            .frame(height: 140)
                         }
-                        .frame(height: 100)
+                        .padding(.trailing, 8)
+                        .padding(.bottom, 8)
                         
-                        Text("Hours (24-hour format)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        // Legend
+                        HStack(spacing: 12) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.yellow)
+                                
+                                Text("Peak Energy")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(primaryPurple)
+                                    .frame(width: 8, height: 8)
+                                
+                                Text("Energy Flow")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
                     // Key stats in a grid
@@ -710,6 +803,28 @@ struct BiorythmAnalysisFlow: View {
     private func getEnergyColor(height: CGFloat) -> Color {
         let hue = 0.7 - (height / 150) // Purple to blue gradient based on height
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)
+    }
+    
+    // Helper function to format hour labels (12-hour format with AM/PM)
+    private func formatHour(_ hour: Int) -> String {
+        let h = hour % 12 == 0 ? 12 : hour % 12
+        return "\(h)\(hour < 12 ? "a" : "p")"
+    }
+    
+    // Helper function to determine if an hour is a peak energy hour
+    private func isPeakHour(hour: Int, biorhythmNumber: Int) -> Bool {
+        switch biorhythmNumber {
+        case 1: return hour == 21 || hour == 22 // 9PM-10PM
+        case 2: return hour == 8 || hour == 19 // 8AM, 7PM
+        case 3: return hour == 10 || hour == 17 // 10AM, 5PM
+        case 4: return hour == 8 || hour == 9 // 8AM-9AM
+        case 5: return hour == 7 || hour == 14 // 7AM, 2PM
+        case 6: return hour == 10 || hour == 17 // 10AM, 5PM
+        case 7: return hour == 8 || hour == 18 // 8AM, 6PM
+        case 8: return hour == 9 || hour == 10 // 9AM-10AM
+        case 9: return hour == 6 || hour == 18 // 6AM, 6PM (dawn/dusk)
+        default: return hour == 9 || hour == 17 // 9AM, 5PM
+        }
     }
     
     private func getSleepEfficiency() -> String {

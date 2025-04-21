@@ -13,6 +13,14 @@ class SubscriptionService: ObservableObject {
     private let yearlySubscriptionID = "lunara.sub.yearly"
     private let yearlyPromoSubscriptionID = "lunara.subscription.yearlypromo"
     
+    private let freeInterpretationAttemptsKey = "freeInterpretationAttempts"
+    private let freeLucidDreamingLessonAttemptsKey = "freeLucidDreamingLessonAttempts"
+    private let freeDailyDreamFactAttemptsKey = "freeDailyDreamFactAttempts"
+    private let maxFreeAttempts = 1
+    
+    // Test mode - premium username
+    private let premiumTestUsername = "premiumuser"
+    
     private var productIDs: Set<String> {
         return [weeklySubscriptionID, yearlySubscriptionID, yearlyPromoSubscriptionID]
     }
@@ -147,8 +155,81 @@ class SubscriptionService: ObservableObject {
         return product
     }
     
+    // MARK: - Subscription Status
+    
     func isSubscribed() -> Bool {
+        // Check for test mode - if username is "premiumuser"
+        if isPremiumTestUser() {
+            return true
+        }
+        
+        // Regular subscription check
         return !purchasedProductIDs.isEmpty
+    }
+    
+    // Test mode helper function
+    private func isPremiumTestUser() -> Bool {
+        let currentUsername = UserDefaults.standard.string(forKey: "userName") ?? ""
+        return currentUsername.lowercased() == premiumTestUsername.lowercased()
+    }
+    
+    // MARK: - Free Feature Attempts
+    
+    // Dream Interpretation
+    func canInterpretDream() -> Bool {
+        if isSubscribed() {
+            return true
+        }
+        
+        let usedAttempts = UserDefaults.standard.integer(forKey: freeInterpretationAttemptsKey)
+        return usedAttempts < maxFreeAttempts
+    }
+    
+    func incrementInterpretationAttempts() {
+        if !isSubscribed() {
+            let currentAttempts = UserDefaults.standard.integer(forKey: freeInterpretationAttemptsKey)
+            UserDefaults.standard.set(currentAttempts + 1, forKey: freeInterpretationAttemptsKey)
+        }
+    }
+    
+    // Lucid Dreaming Lesson
+    func canViewLucidDreamingLesson() -> Bool {
+        if isSubscribed() {
+            return true
+        }
+        
+        let usedAttempts = UserDefaults.standard.integer(forKey: freeLucidDreamingLessonAttemptsKey)
+        return usedAttempts < maxFreeAttempts
+    }
+    
+    func incrementLucidDreamingLessonAttempts() {
+        if !isSubscribed() {
+            let currentAttempts = UserDefaults.standard.integer(forKey: freeLucidDreamingLessonAttemptsKey)
+            UserDefaults.standard.set(currentAttempts + 1, forKey: freeLucidDreamingLessonAttemptsKey)
+        }
+    }
+    
+    // Daily Dream Fact
+    func canViewDailyDreamFact() -> Bool {
+        if isSubscribed() {
+            return true
+        }
+        
+        let usedAttempts = UserDefaults.standard.integer(forKey: freeDailyDreamFactAttemptsKey)
+        return usedAttempts < maxFreeAttempts
+    }
+    
+    func incrementDailyDreamFactAttempts() {
+        if !isSubscribed() {
+            let currentAttempts = UserDefaults.standard.integer(forKey: freeDailyDreamFactAttemptsKey)
+            UserDefaults.standard.set(currentAttempts + 1, forKey: freeDailyDreamFactAttemptsKey)
+        }
+    }
+    
+    func resetAllFreeAttempts() {
+        UserDefaults.standard.set(0, forKey: freeInterpretationAttemptsKey)
+        UserDefaults.standard.set(0, forKey: freeLucidDreamingLessonAttemptsKey)
+        UserDefaults.standard.set(0, forKey: freeDailyDreamFactAttemptsKey)
     }
     
     // MARK: - Formatting Helpers

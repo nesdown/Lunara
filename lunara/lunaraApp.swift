@@ -14,12 +14,31 @@ import SwiftUI
 @main
 struct lunaraApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     init() {
         // Only register defaults if the key doesn't exist yet
         if UserDefaults.standard.object(forKey: "hasCompletedOnboarding") == nil {
             UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         }
+        
+        // Initialize app version for tracking updates
+        setupAppVersion()
+    }
+    
+    private func setupAppVersion() {
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let lastVersionKey = "lastAppVersion"
+        
+        // Check if this is a new version
+        if let lastVersion = UserDefaults.standard.string(forKey: lastVersionKey),
+           lastVersion != currentVersion {
+            // Version changed, reset free attempts counter
+            SubscriptionService.shared.resetAllFreeAttempts()
+        }
+        
+        // Save current version
+        UserDefaults.standard.set(currentVersion, forKey: lastVersionKey)
     }
     
     var body: some Scene {

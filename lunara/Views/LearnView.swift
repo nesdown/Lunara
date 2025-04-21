@@ -2993,11 +2993,13 @@ struct LearnView: View {
     @State private var showDailyRitual = false
     @State private var showLucidDreamingLesson = false
     @State private var showDreamFact = false
+    @State private var showSubscription = false
     @State private var searchText: String = ""
     @State private var selectedCategory: DreamArticle.ArticleCategory? = nil
     @State private var expandedArticle: UUID? = nil
     @State private var selectedArticle: DreamArticle? = nil
     @State private var showArticleSheet = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -3028,6 +3030,30 @@ struct LearnView: View {
     // Random article for the "Article of the Day" section
     private var articleOfTheDay: DreamArticle {
         DreamArticle.allArticles.randomElement() ?? DreamArticle.allArticles[0]
+    }
+    
+    // Function to handle lucid dreaming lesson tap
+    private func handleLucidDreamingLessonTap() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        if subscriptionService.canViewLucidDreamingLesson() {
+            subscriptionService.incrementLucidDreamingLessonAttempts()
+            showLucidDreamingLesson = true
+        } else {
+            showSubscription = true
+        }
+    }
+    
+    // Function to handle daily dream fact tap
+    private func handleDailyDreamFactTap() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        if subscriptionService.canViewDailyDreamFact() {
+            subscriptionService.incrementDailyDreamFactAttempts()
+            showDreamFact = true
+        } else {
+            showSubscription = true
+        }
     }
     
     var body: some View {
@@ -3067,11 +3093,10 @@ struct LearnView: View {
                                 isActive: $showLucidDreamingLesson
                             ) {
                                 Button(action: {
-                                    showLucidDreamingLesson = true
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    handleLucidDreamingLessonTap()
                                 }) {
                                     LucidDreamingLessonTile(onButtonTap: {
-                                        showLucidDreamingLesson = true
+                                        handleLucidDreamingLessonTap()
                                     })
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -3084,11 +3109,10 @@ struct LearnView: View {
                                 isActive: $showDreamFact
                             ) {
                                 Button(action: {
-                                    showDreamFact = true
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    handleDailyDreamFactTap()
                                 }) {
                                     DailyDreamFactTile(onButtonTap: {
-                                        showDreamFact = true
+                                        handleDailyDreamFactTap()
                                     })
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -3116,6 +3140,9 @@ struct LearnView: View {
             .fullScreenCover(item: $selectedArticle) { article in
                 ArticleSheetView(article: article)
                     .edgesIgnoringSafeArea(.all)
+            }
+            .fullScreenCover(isPresented: $showSubscription) {
+                SubscriptionView()
             }
         }
     }

@@ -1430,6 +1430,8 @@ struct SymbolsLibraryView: View {
     @State private var selectedCategory: SymbolCategory? = nil
     @State private var searchText = ""
     @State private var selectedSymbol: DreamSymbol? = nil
+    @State private var showingSubscription = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -1518,7 +1520,14 @@ struct SymbolsLibraryView: View {
                     List {
                         ForEach(filteredSymbols) { symbol in
                             SymbolRow(symbol: symbol, onTap: {
-                                selectedSymbol = symbol
+                                // Check subscription status before showing symbol detail
+                                if subscriptionService.isSubscribed() {
+                                    // Paid user - show symbol details
+                                    selectedSymbol = symbol
+                                } else {
+                                    // Free user - show subscription view
+                                    showingSubscription = true
+                                }
                             })
                         }
                         .listRowBackground(colorScheme == .dark ? Color(white: 0.15) : .white)
@@ -1550,6 +1559,9 @@ struct SymbolsLibraryView: View {
             .background(Color(.systemBackground))
             .sheet(item: $selectedSymbol) { symbol in
                 SymbolDetailView(symbol: symbol)
+            }
+            .fullScreenCover(isPresented: $showingSubscription) {
+                SubscriptionView()
             }
         }
     }
@@ -1810,6 +1822,8 @@ struct DailySymbolCard: View {
     private let grayText = Color.gray
     
     @State private var showingSymbolDetail = false
+    @State private var showingSubscription = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     var body: some View {
         VStack(spacing: 0) {
@@ -1866,7 +1880,15 @@ struct DailySymbolCard: View {
             // Full-width button with star icon
             Button {
                 HapticManager.shared.buttonPress()
-                showingSymbolDetail = true
+                
+                // Check subscription status
+                if subscriptionService.isSubscribed() {
+                    // Subscribed user - show details
+                    showingSymbolDetail = true
+                } else {
+                    // Free user - show subscription view
+                    showingSubscription = true
+                }
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
@@ -1875,7 +1897,7 @@ struct DailySymbolCard: View {
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundColor(primaryPurple)
-        .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 30)
@@ -1897,6 +1919,9 @@ struct DailySymbolCard: View {
         .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
         .sheet(isPresented: $showingSymbolDetail) {
             SymbolDetailView(symbol: symbol)
+        }
+        .fullScreenCover(isPresented: $showingSubscription) {
+            SubscriptionView()
         }
     }
 }
@@ -2010,6 +2035,8 @@ struct JournalView: View {
     @State private var tabChanged = false
     @State private var calendarMonthChanged = false
     @State private var exploreButtonScale: CGFloat = 1.0
+    @State private var showSubscriptionSheet = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     // Mock data - replace with Core Data
     @State private var dreams: [DreamEntry] = []
@@ -2050,9 +2077,14 @@ struct JournalView: View {
                                 HapticManager.shared.light()
                             }),
                             TopBarButton(icon: "plus", action: {
-                                // Show the dream entry flow with haptic feedback
+                                // Check if user can interpret dreams before showing the flow
                                 HapticManager.shared.buttonPress()
-                                showDreamEntrySheet = true
+                                if subscriptionService.canInterpretDream() {
+                                    showDreamEntrySheet = true
+                                } else {
+                                    // No free attempts left, show subscription view directly
+                                    showSubscriptionSheet = true
+                                }
                             })
                         ]
                     )
@@ -2122,6 +2154,9 @@ struct JournalView: View {
             }
             .sheet(isPresented: $showingSymbolsLibrary) {
                 SymbolsLibraryView()
+            }
+            .fullScreenCover(isPresented: $showSubscriptionSheet) {
+                SubscriptionView()
             }
             .onAppear {
                 // Load dreams when view appears

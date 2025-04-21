@@ -191,11 +191,22 @@ class OnboardingViewModel: ObservableObject {
         
         // If we're on the last page
         if currentPage == pages.count - 1 {
-            // Complete onboarding first
+            // Complete onboarding
             completeOnboarding()
             
-            // Show subscription view immediately without delay
-            showSubscription = true
+            // No longer showing subscription view
+            hasCompletedOnboarding = true
+            
+            // Request app store review 
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                    if #available(iOS 18.0, *) {
+                        StoreKit.AppStore.requestReview(in: scene)
+                    } else {
+                        SKStoreReviewController.requestReview(in: scene)
+                    }
+                }
+            }
         } else {
             // Move to the next page
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {

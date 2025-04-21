@@ -11,6 +11,7 @@ struct HomeView: View {
     @State private var showBiorythmAnalysis = false
     @State private var showingSubscription = false
     @State private var showingPromoModal = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     // Button animation states
     @State private var unlockButtonScale: CGFloat = 1.0
@@ -38,6 +39,36 @@ struct HomeView: View {
     // Helper property to check if dark mode is active
     private var isDarkMode: Bool {
         return themeSettings.colorScheme == .dark
+    }
+    
+    // Computed property to manage top bar buttons based on subscription status
+    private var topBarButtons: [TopBarButton] {
+        if subscriptionService.isSubscribed() {
+            // Only show theme toggle for subscribers
+            return [
+                TopBarButton(icon: isDarkMode ? "sun.max.fill" : "moon.fill", action: {
+                    // Toggle between light and dark mode
+                    themeSettings.colorScheme = isDarkMode ? .light : .dark
+                })
+            ]
+        } else {
+            // Show all buttons for non-subscribers
+            return [
+                TopBarButton(icon: "gift.fill", action: {
+                    HapticManager.shared.buttonPress()
+                    showingPromoModal = true
+                }),
+                TopBarButton(icon: "crown.fill", action: {
+                    // Show subscription view when crown icon is clicked
+                    HapticManager.shared.buttonPress()
+                    showingSubscription = true
+                }),
+                TopBarButton(icon: isDarkMode ? "sun.max.fill" : "moon.fill", action: {
+                    // Toggle between light and dark mode
+                    themeSettings.colorScheme = isDarkMode ? .light : .dark
+                })
+            ]
+        }
     }
     
     private var currentDate: String {
@@ -133,21 +164,7 @@ struct HomeView: View {
                         titleView: customTitleView,
                         primaryPurple: primaryPurple,
                         colorScheme: colorScheme,
-                        rightButtons: [
-                            TopBarButton(icon: "gift.fill", action: {
-                                HapticManager.shared.buttonPress()
-                                showingPromoModal = true
-                            }),
-                            TopBarButton(icon: "crown.fill", action: {
-                                // Show subscription view when crown icon is clicked
-                                HapticManager.shared.buttonPress()
-                                showingSubscription = true
-                            }),
-                            TopBarButton(icon: isDarkMode ? "sun.max.fill" : "moon.fill", action: {
-                                // Toggle between light and dark mode
-                                themeSettings.colorScheme = isDarkMode ? .light : .dark
-                            })
-                        ]
+                        rightButtons: topBarButtons
                     )
                     
                     ScrollView {
@@ -208,7 +225,7 @@ struct HomeView: View {
                                         }
                                     }
                                     
-                                    showingDreamEntry = true
+                                    handleDreamInterpreterClick()
                                 } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "plus.circle.fill")
@@ -240,81 +257,83 @@ struct HomeView: View {
                             .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             
                             // Premium Features Card
-                            VStack(spacing: 0) {
-                                HStack(alignment: .center, spacing: 16) {
-                                    // Left part - Icon
-                                    ZStack {
-                                        Circle()
-                                            .fill(lightPurple)
-                                            .frame(width: 70, height: 70)
-                                        Image(systemName: "crown.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(primaryPurple)
+                            if !subscriptionService.isSubscribed() {
+                                VStack(spacing: 0) {
+                                    HStack(alignment: .center, spacing: 16) {
+                                        // Left part - Icon
+                                        ZStack {
+                                            Circle()
+                                                .fill(lightPurple)
+                                                .frame(width: 70, height: 70)
+                                            Image(systemName: "crown.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(primaryPurple)
+                                        }
+                                        
+                                        // Right part - Text
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Premium Features")
+                                                .font(.title3)
+                                                .fontWeight(.semibold)
+                                            Text("Get unlimited dream interpretations, advanced insights, and personalized recommendations")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                                .lineSpacing(2)
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
                                     }
-                                    
-                                    // Right part - Text
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Premium Features")
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                        Text("Get unlimited dream interpretations, advanced insights, and personalized recommendations")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .lineSpacing(2)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 16)
-                                
-                                Divider()
-                                    .background(lightPurple)
                                     .padding(.horizontal, 16)
-                                
-                                Button {
-                                    HapticManager.shared.buttonPress()
+                                    .padding(.vertical, 16)
                                     
-                                    // Button animation - dramatic pulse effect
-                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                                        premiumButtonScale = 0.8
-                                    }
+                                    Divider()
+                                        .background(lightPurple)
+                                        .padding(.horizontal, 16)
                                     
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
-                                            premiumButtonScale = 1.15
+                                    Button {
+                                        HapticManager.shared.buttonPress()
+                                        
+                                        // Button animation - dramatic pulse effect
+                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                                            premiumButtonScale = 0.8
                                         }
                                         
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                                                premiumButtonScale = 1.0
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
+                                                premiumButtonScale = 1.15
+                                            }
+                                            
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                                withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                                                    premiumButtonScale = 1.0
+                                                }
                                             }
                                         }
+                                        
+                                        showingSubscription = true
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "crown.fill")
+                                                .font(.system(size: 16, weight: .semibold))
+                                            Text("UPGRADE TO PREMIUM")
+                                                .font(.system(size: 16, weight: .semibold))
+                                        }
+                                        .foregroundColor(primaryPurple)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
                                     }
-                                    
-                                    showingSubscription = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "crown.fill")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text("UPGRADE TO PREMIUM")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(primaryPurple)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 16)
+                                    .scaleEffect(premiumButtonScale)
                                 }
-                                .padding(.horizontal, 16)
-                                .scaleEffect(premiumButtonScale)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .fill(.white)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .strokeBorder(lightPurple, lineWidth: 1)
+                                )
+                                .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             }
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(.white)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .strokeBorder(lightPurple, lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             
                             // Biorythm Analysis Card
                             VStack(spacing: 0) {
@@ -466,48 +485,50 @@ struct HomeView: View {
                             
                             // Action Buttons
                             VStack(spacing: 16) {
-                                Button {
-                                    // Open premium upgrade flow or in-app purchase
-                                    HapticManager.shared.buttonPress()
-                                    
-                                    // Button animation - subtle rotation and scale effect
-                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                                        unlockButtonScale = 0.95
-                                        unlockButtonRotation = -1
-                                    }
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                            unlockButtonScale = 1.03
-                                            unlockButtonRotation = 0.5
+                                if !subscriptionService.isSubscribed() {
+                                    Button {
+                                        // Open premium upgrade flow or in-app purchase
+                                        HapticManager.shared.buttonPress()
+                                        
+                                        // Button animation - subtle rotation and scale effect
+                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                                            unlockButtonScale = 0.95
+                                            unlockButtonRotation = -1
                                         }
                                         
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                                                unlockButtonScale = 1.0
-                                                unlockButtonRotation = 0
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                                unlockButtonScale = 1.03
+                                                unlockButtonRotation = 0.5
+                                            }
+                                            
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                                withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                                                    unlockButtonScale = 1.0
+                                                    unlockButtonRotation = 0
+                                                }
                                             }
                                         }
+                                        
+                                        showingSubscription = true
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "lock.open.fill")
+                                                .font(.system(size: 16, weight: .semibold))
+                                            Text("UNLOCK ALL FEATURES")
+                                                .font(.system(size: 16, weight: .semibold))
+                                        }
+                                        .foregroundColor(primaryPurple)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 24)
+                                                .strokeBorder(primaryPurple, lineWidth: 1)
+                                        )
                                     }
-                                    
-                                    showingSubscription = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "lock.open.fill")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text("UNLOCK ALL FEATURES")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(primaryPurple)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .strokeBorder(primaryPurple, lineWidth: 1)
-                                    )
+                                    .scaleEffect(unlockButtonScale)
+                                    .rotationEffect(.degrees(unlockButtonRotation))
                                 }
-                                .scaleEffect(unlockButtonScale)
-                                .rotationEffect(.degrees(unlockButtonRotation))
                                 
                                 Button {
                                     // Request app store review
@@ -703,6 +724,17 @@ struct HomeView: View {
             return "airplane.departure"
         default:
             return "moon.stars.fill"
+        }
+    }
+    
+    // Function that triggers when the dream interpreter tile is clicked
+    private func handleDreamInterpreterClick() {
+        // Check if user can interpret dreams before showing the flow
+        if subscriptionService.canInterpretDream() {
+            showingDreamEntry = true
+        } else {
+            // No free attempts left, show subscription view directly
+            showingSubscription = true
         }
     }
 }

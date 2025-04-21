@@ -177,6 +177,7 @@ struct ProfileView: View {
     @State private var editingName = ""
     @State private var reminderDate = Calendar.current.date(from: DateComponents(hour: 8, minute: 0)) ?? Date()
     @State private var showingSubscription = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -229,7 +230,7 @@ struct ProfileView: View {
                                         Text(userName)
                                             .font(.title3)
                                             .fontWeight(.semibold)
-                                        Text("Free Account")
+                                        Text(subscriptionService.isSubscribed() ? "Premium Account" : "Free Account")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }
@@ -258,15 +259,17 @@ struct ProfileView: View {
                                 )
                                 .shadow(color: Color.black.opacity(0.03), radius: 10, x: 0, y: 4)
                                 
-                                SettingsRow(
-                                    icon: "crown.fill",
-                                    title: "Upgrade to Premium",
-                                    subtitle: "Get access to all features",
-                                    action: {
-                                        // Present the SubscriptionView as fullscreen cover
-                                        showingSubscription = true
-                                    }
-                                )
+                                if !subscriptionService.isSubscribed() {
+                                    SettingsRow(
+                                        icon: "crown.fill",
+                                        title: "Upgrade to Premium",
+                                        subtitle: "Get access to all features",
+                                        action: {
+                                            // Present the SubscriptionView as fullscreen cover
+                                            showingSubscription = true
+                                        }
+                                    )
+                                }
                             }
                         ))
                         
@@ -443,26 +446,28 @@ struct ProfileView: View {
                             }
                         ))
                         
-                        // Developer Section
-                        SettingsSection(title: "Developer", content: AnyView(
-                            VStack(spacing: 12) {
-                                SettingsRow(
-                                    icon: "line.3.crossed.swirl.circle.fill",
-                                    title: "Test Onboarding",
-                                    subtitle: "Reset onboarding state to view it again",
-                                    action: {
-                                        // Reset onboarding state
-                                        hasCompletedOnboarding = false
-                                        
-                                        // Display alert that onboarding has been reset
-                                        HapticManager.shared.buttonPress()
-                                        
-                                        // Show alert asking if user wants to see onboarding now
-                                        showResetAlert = true
-                                    }
-                                )
-                            }
-                        ))
+                        // Developer Section - only show for "premiumuser"
+                        if userName.lowercased() == "premiumuser" {
+                            SettingsSection(title: "Developer", content: AnyView(
+                                VStack(spacing: 12) {
+                                    SettingsRow(
+                                        icon: "line.3.crossed.swirl.circle.fill",
+                                        title: "Test Onboarding",
+                                        subtitle: "Reset onboarding state to view it again",
+                                        action: {
+                                            // Reset onboarding state
+                                            hasCompletedOnboarding = false
+                                            
+                                            // Display alert that onboarding has been reset
+                                            HapticManager.shared.buttonPress()
+                                            
+                                            // Show alert asking if user wants to see onboarding now
+                                            showResetAlert = true
+                                        }
+                                    )
+                                }
+                            ))
+                        }
                         
                         // Account Actions
                         SettingsSection(title: "Account Actions", content: AnyView(

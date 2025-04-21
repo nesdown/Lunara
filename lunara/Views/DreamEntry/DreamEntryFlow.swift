@@ -9,11 +9,13 @@ enum DreamEntryStep: Int {
     case intensity
     case interpretation
     case results
+    case subscription
 }
 
 struct DreamEntryFlow: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = DreamInterpretationViewModel()
+    @StateObject private var subscriptionService = SubscriptionService.shared
     @State private var currentStep: DreamEntryStep = .description
     @State private var previousStep: DreamEntryStep?
     @State private var isAnimating = false
@@ -52,7 +54,7 @@ struct DreamEntryFlow: View {
                                 .fill(Color(.systemGray6))
                         )
                 },
-                trailing: currentStep == .results ? nil : skipButton
+                trailing: currentStep == .results || currentStep == .subscription ? nil : skipButton
             )
             .background(Color(.systemBackground))
         }
@@ -88,35 +90,49 @@ struct DreamEntryFlow: View {
                     set: { viewModel.intensityLevel = Int($0) }
                 ),
                 onNext: {
-                    navigateToNextStep(.interpretation)
-                    Task {
-                        await viewModel.interpretDream(
-                            description: viewModel.description,
-                            didWakeUp: viewModel.didWakeUp,
-                            hadNegativeEmotions: viewModel.hadNegativeEmotions,
-                            intensityLevel: viewModel.intensityLevel
-                        )
-                        // Delay the navigation to results to show loading animation
-                        try? await Task.sleep(nanoseconds: 500_000_000)
-                        withAnimation(AppAnimation.gentleSpring) {
-                            currentStep = .results
+                    // Check if user can interpret dream before proceeding
+                    if subscriptionService.canInterpretDream() {
+                        navigateToNextStep(.interpretation)
+                        subscriptionService.incrementInterpretationAttempts()
+                        Task {
+                            await viewModel.interpretDream(
+                                description: viewModel.description,
+                                didWakeUp: viewModel.didWakeUp,
+                                hadNegativeEmotions: viewModel.hadNegativeEmotions,
+                                intensityLevel: viewModel.intensityLevel
+                            )
+                            // Delay the navigation to results to show loading animation
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            withAnimation(AppAnimation.gentleSpring) {
+                                currentStep = .results
+                            }
                         }
+                    } else {
+                        // User has used up free attempts, show subscription
+                        navigateToNextStep(.subscription)
                     }
                 },
                 onSkip: {
-                    navigateToNextStep(.interpretation)
-                    Task {
-                        await viewModel.interpretDream(
-                            description: viewModel.description,
-                            didWakeUp: viewModel.didWakeUp,
-                            hadNegativeEmotions: viewModel.hadNegativeEmotions,
-                            intensityLevel: viewModel.intensityLevel
-                        )
-                        // Delay the navigation to results to show loading animation
-                        try? await Task.sleep(nanoseconds: 500_000_000)
-                        withAnimation(AppAnimation.gentleSpring) {
-                            currentStep = .results
+                    // Check if user can interpret dream before proceeding
+                    if subscriptionService.canInterpretDream() {
+                        navigateToNextStep(.interpretation)
+                        subscriptionService.incrementInterpretationAttempts()
+                        Task {
+                            await viewModel.interpretDream(
+                                description: viewModel.description,
+                                didWakeUp: viewModel.didWakeUp,
+                                hadNegativeEmotions: viewModel.hadNegativeEmotions,
+                                intensityLevel: viewModel.intensityLevel
+                            )
+                            // Delay the navigation to results to show loading animation
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            withAnimation(AppAnimation.gentleSpring) {
+                                currentStep = .results
+                            }
                         }
+                    } else {
+                        // User has used up free attempts, show subscription
+                        navigateToNextStep(.subscription)
                     }
                 }
             )
@@ -139,6 +155,8 @@ struct DreamEntryFlow: View {
                         .appearanceAnimation(delay: 0.1)
                     
                     Button("Try Again") {
+                        // No need to check subscription here as we've already 
+                        // used an attempt and are just retrying due to an error
                         navigateToNextStep(.interpretation)
                         Task {
                             await viewModel.interpretDream(
@@ -159,6 +177,10 @@ struct DreamEntryFlow: View {
                 DreamInterpretationView(viewModel: viewModel)
                     .transition(.opacity)
             }
+            
+        case .subscription:
+            SubscriptionView()
+                .transition(.opacity)
         }
     }
     
@@ -205,6 +227,8 @@ struct DreamEntryFlow: View {
             return "Interpreting Dream"
         case .results:
             return "Dream Interpretation"
+        case .subscription:
+            return "Unlock Premium"
         }
     }
     
@@ -218,20 +242,27 @@ struct DreamEntryFlow: View {
             case .emotions:
                 navigateToNextStep(.intensity)
             case .intensity:
-                navigateToNextStep(.interpretation)
-                Task {
-                    await viewModel.interpretDream(
-                        description: viewModel.description,
-                        didWakeUp: viewModel.didWakeUp,
-                        hadNegativeEmotions: viewModel.hadNegativeEmotions,
-                        intensityLevel: viewModel.intensityLevel
-                    )
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    withAnimation(AppAnimation.gentleSpring) {
-                        currentStep = .results
+                // Check if user can interpret dream before proceeding
+                if subscriptionService.canInterpretDream() {
+                    navigateToNextStep(.interpretation)
+                    subscriptionService.incrementInterpretationAttempts()
+                    Task {
+                        await viewModel.interpretDream(
+                            description: viewModel.description,
+                            didWakeUp: viewModel.didWakeUp,
+                            hadNegativeEmotions: viewModel.hadNegativeEmotions,
+                            intensityLevel: viewModel.intensityLevel
+                        )
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        withAnimation(AppAnimation.gentleSpring) {
+                            currentStep = .results
+                        }
                     }
+                } else {
+                    // User has used up free attempts, show subscription
+                    navigateToNextStep(.subscription)
                 }
-            case .interpretation, .results:
+            case .interpretation, .results, .subscription:
                 break
             }
         }) {

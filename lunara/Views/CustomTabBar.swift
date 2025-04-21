@@ -4,6 +4,8 @@ import Models
 struct CustomTabBar: View {
     @Binding var selectedTab: Tab
     @State private var showDreamEntry = false
+    @State private var showSubscription = false
+    @StateObject private var subscriptionService = SubscriptionService.shared
     let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     
     var body: some View {
@@ -12,8 +14,13 @@ struct CustomTabBar: View {
                 if index == Tab.allCases.count / 2 {
                     // Center Plus Button
                     Button(action: {
-                        // Show the dream entry flow
-                        showDreamEntry = true
+                        // Check if user can interpret dreams before showing the flow
+                        if subscriptionService.canInterpretDream() {
+                            showDreamEntry = true
+                        } else {
+                            // No free attempts left, show subscription view directly
+                            showSubscription = true
+                        }
                     }) {
                         ZStack {
                             Circle()
@@ -29,6 +36,9 @@ struct CustomTabBar: View {
                     .frame(width: 80) // Fixed width for center item
                     .sheet(isPresented: $showDreamEntry) {
                         DreamEntryFlow()
+                    }
+                    .fullScreenCover(isPresented: $showSubscription) {
+                        SubscriptionView()
                     }
                 }
                 
