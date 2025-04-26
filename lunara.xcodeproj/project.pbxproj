@@ -35,9 +35,22 @@
 		1AC62B1E2DA4266E00F45C85 /* lunara.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = lunara.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1AEA98472DB6FC4A00449591 /* Exceptions for "lunara" folder in "lunara" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1A8030B42D71527D000DC0D1 /* lunara */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1A8030B72D71527D000DC0D1 /* lunara */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1AEA98472DB6FC4A00449591 /* Exceptions for "lunara" folder in "lunara" target */,
+			);
 			path = lunara;
 			sourceTree = "<group>";
 		};
@@ -430,8 +443,10 @@
 				DEVELOPMENT_TEAM = 4SFWS96Q5D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = lunara/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Lunara;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Lunara uses speech recognition to allow you to record your dreams by speaking instead of typing. This provides a more natural way to capture dream details when you first wake up.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -465,8 +480,10 @@
 				DEVELOPMENT_TEAM = 4SFWS96Q5D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = lunara/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Lunara;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Lunara uses speech recognition to allow you to record your dreams by speaking instead of typing. This provides a more natural way to capture dream details when you first wake up.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

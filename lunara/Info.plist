@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Lunara uses speech recognition to allow you to record your dreams by speaking instead of typing. This provides a more natural way to capture dream details when you first wake up.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Lunara needs access to your microphone to allow voice input for recording your dreams.</string>
+</dict>
+</plist>
