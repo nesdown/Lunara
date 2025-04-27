@@ -1,10 +1,10 @@
 import SwiftUI
 
 public enum Tab: String, CaseIterable {
-    case dreams = "tab_dreams"
-    case journal = "tab_journal"
-    case learn = "tab_learn"
-    case profile = "tab_profile"
+    case dreams = "Dreams"
+    case journal = "Journal"
+    case learn = "Learn"
+    case profile = "Profile"
     
     public var icon: String {
         switch self {

@@ -178,8 +178,6 @@ struct ProfileView: View {
     @State private var reminderDate = Calendar.current.date(from: DateComponents(hour: 8, minute: 0)) ?? Date()
     @State private var showingSubscription = false
     @StateObject private var subscriptionService = SubscriptionService.shared
-    @State private var showLanguagePicker = false
-    @State private var languageRefresh: Bool = false
     
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
@@ -204,7 +202,7 @@ struct ProfileView: View {
             ZStack(alignment: .top) {
                 // Fixed Header using shared component
                 TopBarView(
-                    title: StringsProvider.shared.localizedString("settings"),
+                    title: "Settings",
                     primaryPurple: primaryPurple,
                     colorScheme: colorScheme,
                     rightButtons: []
@@ -215,7 +213,7 @@ struct ProfileView: View {
                         Color.clear.frame(height: 60)
                         
                         // Account Section
-                        SettingsSection(title: StringsProvider.shared.localizedString("account"), content: AnyView(
+                        SettingsSection(title: "Account", content: AnyView(
                             VStack(spacing: 12) {
                                 // Profile Card
                                 HStack(spacing: 16) {
@@ -232,7 +230,7 @@ struct ProfileView: View {
                                         Text(userName)
                                             .font(.title3)
                                             .fontWeight(.semibold)
-                                        Text(subscriptionService.isSubscribed() ? StringsProvider.shared.localizedString("premium_account") : StringsProvider.shared.localizedString("free_account"))
+                                        Text(subscriptionService.isSubscribed() ? "Premium Account" : "Free Account")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }
@@ -244,7 +242,7 @@ struct ProfileView: View {
                                         editingName = userName
                                         showEditNameSheet = true
                                     }) {
-                                        Text(StringsProvider.shared.localizedString("edit"))
+                                        Text("Edit")
                                             .font(.system(size: 16, weight: .medium))
                                             .foregroundColor(primaryPurple)
                                     }
@@ -264,8 +262,8 @@ struct ProfileView: View {
                                 if !subscriptionService.isSubscribed() {
                                     SettingsRow(
                                         icon: "crown.fill",
-                                        title: StringsProvider.shared.localizedString("upgrade_to_premium_short"),
-                                        subtitle: StringsProvider.shared.localizedString("upgrade_description"),
+                                        title: "Upgrade to Premium",
+                                        subtitle: "Get access to all features",
                                         action: {
                                             // Present the SubscriptionView as fullscreen cover
                                             showingSubscription = true
@@ -276,18 +274,18 @@ struct ProfileView: View {
                         ))
                         
                         // Preferences Section
-                        SettingsSection(title: StringsProvider.shared.localizedString("preferences"), content: AnyView(
+                        SettingsSection(title: "Preferences", content: AnyView(
                             VStack(spacing: 12) {
                                 SettingsRow(
                                     icon: "moon.fill",
-                                    title: StringsProvider.shared.localizedString("dark_mode"),
+                                    title: "Dark Mode",
                                     type: .toggle,
                                     isOn: darkModeBinding
                                 )
                                 
                                 SettingsRow(
                                     icon: "bell.fill",
-                                    title: StringsProvider.shared.localizedString("notifications"),
+                                    title: "Notifications",
                                     type: .toggle,
                                     isOn: $isNotificationsEnabled,
                                     action: {
@@ -308,10 +306,8 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "alarm.fill",
-                                    title: StringsProvider.shared.localizedString("dream_reminders"),
-                                    subtitle: isReminderEnabled ? 
-                                        String(format: StringsProvider.shared.localizedString("daily_reminder_at"), reminderTimeString) : 
-                                        StringsProvider.shared.localizedString("get_reminded"),
+                                    title: "Dream Reminders",
+                                    subtitle: isReminderEnabled ? "Daily reminder at \(reminderTimeString)" : "Get reminded to log your dreams",
                                     type: .toggle,
                                     isOn: $isReminderEnabled,
                                     action: {
@@ -350,53 +346,20 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "waveform.path",
-                                    title: StringsProvider.shared.localizedString("haptics"),
+                                    title: "Haptics",
+                                    subtitle: "Feel subtle vibrations when interacting with the app",
                                     type: .toggle,
                                     isOn: $isHapticsEnabled
                                 )
                             }
                         ))
                         
-                        // Language Section
-                        SettingsSection(title: StringsProvider.shared.localizedString("language"), content: AnyView(
-                            VStack(spacing: 12) {
-                                Button(action: {
-                                    // Show language picker
-                                    showLanguagePicker = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "globe")
-                                            .foregroundColor(primaryPurple)
-                                            .font(.system(size: 22))
-                                            .frame(width: 30, height: 30)
-                                        
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(StringsProvider.shared.localizedString("app_language"))
-                                                .font(.system(size: 16, weight: .semibold))
-                                            
-                                            Text(getCurrentLanguageDisplay())
-                                                .font(.system(size: 14))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(Color(.tertiaryLabel))
-                                            .font(.system(size: 14))
-                                    }
-                                    .padding(.vertical, 12)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        ))
-                        
                         // Support Section
-                        SettingsSection(title: StringsProvider.shared.localizedString("support"), content: AnyView(
+                        SettingsSection(title: "Support", content: AnyView(
                             VStack(spacing: 12) {
                                 SettingsRow(
                                     icon: "questionmark.circle.fill",
-                                    title: StringsProvider.shared.localizedString("help_center"),
+                                    title: "Help Center",
                                     action: {
                                         // Open Help Center URL
                                         if let url = URL(string: "https://multumgrp.tech/lunara") {
@@ -407,7 +370,7 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "envelope.fill",
-                                    title: StringsProvider.shared.localizedString("contact_support"),
+                                    title: "Contact Support",
                                     action: {
                                         // Open Contact Support URL
                                         if let url = URL(string: "https://multumgrp.tech/lunara#popup:form") {
@@ -418,7 +381,7 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "star.fill",
-                                    title: StringsProvider.shared.localizedString("rate_app"),
+                                    title: "Rate App",
                                     action: {
                                         // Request app store review
                                         HapticManager.shared.buttonPress()
@@ -435,11 +398,11 @@ struct ProfileView: View {
                         ))
                         
                         // Legal Section
-                        SettingsSection(title: StringsProvider.shared.localizedString("legal"), content: AnyView(
+                        SettingsSection(title: "Legal", content: AnyView(
                             VStack(spacing: 12) {
                                 SettingsRow(
                                     icon: "doc.text.fill",
-                                    title: StringsProvider.shared.localizedString("privacy_policy"),
+                                    title: "Privacy Policy",
                                     action: {
                                         // Open Privacy Policy URL
                                         if let url = URL(string: "https://multumgrp.tech/lunara/privacypolicy") {
@@ -450,7 +413,7 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "doc.text.fill",
-                                    title: StringsProvider.shared.localizedString("terms_of_service"),
+                                    title: "Terms of Service",
                                     action: {
                                         // Open Terms of Service URL
                                         if let url = URL(string: "https://multumgrp.tech/lunara/termsofuse") {
@@ -461,7 +424,7 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "doc.text.fill",
-                                    title: StringsProvider.shared.localizedString("eula"),
+                                    title: "EULA",
                                     action: {
                                         // Open EULA URL
                                         if let url = URL(string: "https://multumgrp.tech/lunara/eula") {
@@ -472,7 +435,7 @@ struct ProfileView: View {
                                 
                                 SettingsRow(
                                     icon: "doc.text.fill",
-                                    title: StringsProvider.shared.localizedString("user_agreement"),
+                                    title: "User Agreement",
                                     action: {
                                         // Open User Agreement URL
                                         if let url = URL(string: "https://multumgrp.tech/lunara/useragreement") {
@@ -507,7 +470,7 @@ struct ProfileView: View {
                         }
                         
                         // Account Actions
-                        SettingsSection(title: StringsProvider.shared.localizedString("account_actions"), content: AnyView(
+                        SettingsSection(title: "Account Actions", content: AnyView(
                             VStack(spacing: 12) {
                                 Button(action: {
                                     // Show delete data confirmation dialog
@@ -517,7 +480,7 @@ struct ProfileView: View {
                                     HStack(spacing: 8) {
                                         Image(systemName: "trash.fill")
                                             .font(.system(size: 16, weight: .semibold))
-                                        Text(StringsProvider.shared.localizedString("delete_all_data"))
+                                        Text("DELETE ALL DATA")
                                             .font(.system(size: 16, weight: .semibold))
                                     }
                                     .foregroundColor(Color.red)
@@ -542,12 +505,12 @@ struct ProfileView: View {
             }
             .alert(isPresented: $showResetAlert) {
                 Alert(
-                    title: Text(StringsProvider.shared.localizedString("delete_data_title")),
-                    message: Text(StringsProvider.shared.localizedString("delete_data_message")),
-                    primaryButton: .destructive(Text(StringsProvider.shared.localizedString("delete"))) {
+                    title: Text("Delete All Data?"),
+                    message: Text("This will delete all your data and reset the app to its initial state. This action cannot be undone."),
+                    primaryButton: .destructive(Text("Delete")) {
                         resetApp()
                     },
-                    secondaryButton: .cancel(Text(StringsProvider.shared.localizedString("cancel")))
+                    secondaryButton: .cancel()
                 )
             }
             .sheet(isPresented: $showEditNameSheet) {
@@ -558,15 +521,6 @@ struct ProfileView: View {
                     saveReminderTime()
                     scheduleDreamReminders()
                 })
-            }
-            .sheet(isPresented: $showLanguagePicker) {
-                LanguagePickerView(
-                    selectedLanguage: UserDefaults.standard.string(forKey: "languageCode"),
-                    onSelect: { code in
-                        // This is now handled in the LanguagePickerView's selectLanguage method
-                        // The method takes care of saving to UserDefaults and notifying StringsProvider
-                    }
-                )
             }
             .fullScreenCover(isPresented: $showingSubscription) {
                 SubscriptionView()
@@ -579,17 +533,7 @@ struct ProfileView: View {
                 if isReminderEnabled {
                     scheduleDreamReminders()
                 }
-                
-                // Listen for language change notifications to refresh this view
-                NotificationCenter.default.addObserver(
-                    forName: .languageChanged,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    languageRefresh.toggle()
-                }
             }
-            .id(languageRefresh) // Force view refresh when language changes
         }
     }
     
@@ -728,25 +672,6 @@ struct ProfileView: View {
             
             // Remove the dream reminder notifications
             notificationCenter.removePendingNotificationRequests(withIdentifiers: dreamReminderIds)
-        }
-    }
-    
-    // Helper function to get the language name from code
-    private func getLanguageName(for languageCode: String) -> String {
-        let locale = Locale(identifier: languageCode)
-        return locale.localizedString(forLanguageCode: languageCode) ?? languageCode
-    }
-    
-    // Add a helper method to get the current language display text
-    private func getCurrentLanguageDisplay() -> String {
-        // Get language code from UserDefaults
-        let userLangCode = UserDefaults.standard.string(forKey: "languageCode")
-        
-        if let langCode = userLangCode {
-            return getLanguageName(for: langCode)
-        } else {
-            return String(format: StringsProvider.shared.localizedString("system"), 
-                         getLanguageName(for: Locale.current.language.languageCode?.identifier ?? "en"))
         }
     }
 }

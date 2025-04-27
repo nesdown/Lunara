@@ -76,7 +76,7 @@ struct TabButton: View {
                     .font(.system(size: 20, weight: .medium))
                     .frame(height: 24)
                 
-                Text(StringsProvider.shared.localizedString(tab.rawValue))
+                Text(tab.rawValue)
                     .font(.system(size: 10, weight: .medium))
             }
             .foregroundColor(isSelected ? primaryPurple : .gray.opacity(0.7))

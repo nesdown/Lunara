@@ -92,16 +92,16 @@ struct HomeView: View {
         let emojis: [String]
         
         if hour >= 5 && hour < 12 {
-            greeting = StringsProvider.shared.localizedString("good_morning")
+            greeting = "Good morning!"
             emojis = ["☀️", "🌅", "🌄", "🌻", "🍳", "☕️"]
         } else if hour >= 12 && hour < 17 {
-            greeting = StringsProvider.shared.localizedString("good_day")
+            greeting = "Afternoon!"
             emojis = ["🌞", "🌈", "🏖️", "🍹", "🌤️", "🌻"]
         } else if hour >= 17 && hour < 22 {
-            greeting = StringsProvider.shared.localizedString("good_evening")
+            greeting = "Evening!"
             emojis = ["🌙", "✨", "🌆", "🌃", "🥂", "🍷"]
         } else {
-            greeting = StringsProvider.shared.localizedString("sleep_well")
+            greeting = "Good night!"
             emojis = ["💤", "🌛", "🌜", "🌌", "🌠", "🦉"]
         }
         
@@ -125,16 +125,16 @@ struct HomeView: View {
         let emojis: [String]
         
         if hour >= 5 && hour < 12 {
-            greeting = StringsProvider.shared.localizedString("good_morning")
+            greeting = "Good morning!"
             emojis = ["☀️", "🌅", "🌄", "🌻", "🍳", "☕️"]
         } else if hour >= 12 && hour < 17 {
-            greeting = StringsProvider.shared.localizedString("good_day")
+            greeting = "Good day!"
             emojis = ["🌞", "🌈", "🏖️", "🍹", "🌤️", "🌻"]
         } else if hour >= 17 && hour < 22 {
-            greeting = StringsProvider.shared.localizedString("good_evening")
+            greeting = "G'evening!"
             emojis = ["🌙", "✨", "🌆", "🌃", "🥂", "🍷"]
         } else {
-            greeting = StringsProvider.shared.localizedString("sleep_well")
+            greeting = "Sleep well!"
             emojis = ["💤", "🌛", "🌜", "🌌", "🌠", "🦉"]
         }
         
@@ -160,9 +160,6 @@ struct HomeView: View {
                 .foregroundColor(.secondary)
         }
     }
-    
-    // Add state variable for language refresh
-    @State private var languageRefresh: Bool = false
     
     var body: some View {
         NavigationView {
@@ -195,10 +192,10 @@ struct HomeView: View {
                                     
                                     // Right part - Text
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(StringsProvider.shared.localizedString("dream_interpreter"))
+                                        Text("Dream Interpreter")
                                             .font(.title3)
                                             .fontWeight(.semibold)
-                                        Text(StringsProvider.shared.localizedString("dream_interpreter_description"))
+                                        Text("Record and understand your dreams with AI-powered interpretation")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                             .lineSpacing(2)
@@ -241,7 +238,7 @@ struct HomeView: View {
                                     HStack(spacing: 8) {
                                         Image(systemName: "plus.circle.fill")
                                             .font(.system(size: 16, weight: .semibold))
-                                        Text(StringsProvider.shared.localizedString("new_dream_entry"))
+                                        Text("NEW DREAM ENTRY")
                                             .font(.system(size: 16, weight: .semibold))
                                     }
                                     .foregroundColor(primaryPurple)
@@ -283,10 +280,10 @@ struct HomeView: View {
                                         
                                         // Right part - Text
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(StringsProvider.shared.localizedString("premium_features"))
+                                            Text("Premium Features")
                                                 .font(.title3)
                                                 .fontWeight(.semibold)
-                                            Text(StringsProvider.shared.localizedString("premium_features_description"))
+                                            Text("Get unlimited dream interpretations, advanced insights, and personalized recommendations")
                                                 .font(.subheadline)
                                                 .foregroundColor(.secondary)
                                                 .lineSpacing(2)
@@ -325,7 +322,7 @@ struct HomeView: View {
                                         HStack(spacing: 8) {
                                             Image(systemName: "crown.fill")
                                                 .font(.system(size: 16, weight: .semibold))
-                                            Text(StringsProvider.shared.localizedString("upgrade_to_premium"))
+                                            Text("UPGRADE TO PREMIUM")
                                                 .font(.system(size: 16, weight: .semibold))
                                         }
                                         .foregroundColor(primaryPurple)
@@ -348,7 +345,7 @@ struct HomeView: View {
                             
                             // Recent Dreams Section
                             VStack(alignment: .leading, spacing: 16) {
-                                Text(StringsProvider.shared.localizedString("recent_dreams"))
+                                Text("Recent Dreams")
                                     .font(.title3)
                                     .fontWeight(.semibold)
                                 
@@ -357,7 +354,7 @@ struct HomeView: View {
                                         Image(systemName: "moon.zzz.fill")
                                             .font(.system(size: 32))
                                             .foregroundColor(primaryPurple.opacity(0.5))
-                                        Text(StringsProvider.shared.localizedString("no_dreams_yet"))
+                                        Text("No Dreams Yet")
                                             .font(.system(size: 16))
                                             .foregroundColor(.secondary)
                                     }
@@ -692,20 +689,10 @@ struct HomeView: View {
         }
         .onAppear {
             loadLatestDreams()
-            
-            // Listen for language change notifications to refresh this view
-            NotificationCenter.default.addObserver(
-                forName: .languageChanged,
-                object: nil,
-                queue: .main
-            ) { _ in
-                languageRefresh.toggle()
-            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .dreamsSaved)) { _ in
             loadLatestDreams()
         }
-        .id(languageRefresh) // Force view refresh when language changes
     }
     
     private func loadLatestDreams() {
