@@ -1,85 +1,85 @@
 import SwiftUI
 
 // MARK: - Dynamic Color Utilities
-struct DynamicColors {
+public struct DynamicColors {
     // Main app colors
-    static let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
-    static let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
-    static let darkPurple = Color(red: 102/255, green: 51/255, blue: 153/255)
-    static let deepPurple = Color(red: 76/255, green: 40/255, blue: 130/255)
+    public static let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
+    public static let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
+    public static let darkPurple = Color(red: 102/255, green: 51/255, blue: 153/255)
+    public static let deepPurple = Color(red: 76/255, green: 40/255, blue: 130/255)
     
     // Dynamic colors for backgrounds
-    static var backgroundPrimary: Color {
+    public static var backgroundPrimary: Color {
         Color(.systemBackground)
     }
     
-    static var backgroundSecondary: Color {
+    public static var backgroundSecondary: Color {
         Color(.secondarySystemBackground)
     }
     
-    static var backgroundTertiary: Color {
+    public static var backgroundTertiary: Color {
         Color(.tertiarySystemBackground)
     }
     
-    static var groupedBackground: Color {
+    public static var groupedBackground: Color {
         Color(.systemGroupedBackground)
     }
     
-    static var cardBackground: Color {
+    public static var cardBackground: Color {
         @Environment(\.colorScheme) var colorScheme
         return colorScheme == .dark ? Color(white: 0.15) : .white
     }
     
     // Dynamic colors for text
-    static var textPrimary: Color {
+    public static var textPrimary: Color {
         Color(.label)
     }
     
-    static var textSecondary: Color {
+    public static var textSecondary: Color {
         Color(.secondaryLabel)
     }
     
-    static var textTertiary: Color {
+    public static var textTertiary: Color {
         Color(.tertiaryLabel)
     }
     
     // Dynamic colors for UI elements
-    static var separator: Color {
+    public static var separator: Color {
         Color(.separator)
     }
     
-    static var fill: Color {
+    public static var fill: Color {
         Color(.systemFill)
     }
     
     // Dynamic gray colors
-    static var gray1: Color {
+    public static var gray1: Color {
         Color(.systemGray)
     }
     
-    static var gray2: Color {
+    public static var gray2: Color {
         Color(.systemGray2)
     }
     
-    static var gray3: Color {
+    public static var gray3: Color {
         Color(.systemGray3)
     }
     
-    static var gray4: Color {
+    public static var gray4: Color {
         Color(.systemGray4)
     }
     
-    static var gray5: Color {
+    public static var gray5: Color {
         Color(.systemGray5)
     }
     
-    static var gray6: Color {
+    public static var gray6: Color {
         Color(.systemGray6)
     }
 }
 
 // Extension to get dynamic card background based on color scheme
-extension View {
+public extension View {
     func cardBackgroundColor() -> Color {
         @Environment(\.colorScheme) var colorScheme
         return colorScheme == .dark ? Color(white: 0.15) : .white
@@ -99,13 +99,13 @@ extension View {
 }
 
 // View modifier for standard card style
-struct CardStyle: ViewModifier {
+public struct CardStyle: ViewModifier {
     var cornerRadius: CGFloat = 16
     var includeShadow: Bool = true
     
     @Environment(\.colorScheme) var colorScheme
     
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)

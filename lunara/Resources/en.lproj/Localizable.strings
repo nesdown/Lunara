@@ -1,0 +1,76 @@
+/* 
+  Localizable.strings
+  Lunara
+*/
+
+// Tab Bar
+"tab_dreams" = "Dreams";
+"tab_journal" = "Journal";
+"tab_learn" = "Learn";
+"tab_profile" = "Profile";
+
+// Home View
+"home_title" = "Home";
+"good_morning" = "Good morning!";
+"good_day" = "Good day!";
+"good_evening" = "G'evening!";
+"sleep_well" = "Sleep well!";
+"dream_interpreter" = "Dream Interpreter";
+"dream_interpreter_description" = "Record and understand your dreams with AI-powered interpretation";
+"new_dream_entry" = "NEW DREAM ENTRY";
+"premium_features" = "Premium Features";
+"premium_features_description" = "Get unlimited dream interpretations, advanced insights, and personalized recommendations";
+"upgrade_to_premium" = "UPGRADE TO PREMIUM";
+"recent_dreams" = "Recent Dreams";
+"no_dreams_yet" = "No Dreams Yet";
+"biorythm_analysis" = "Biorythm Analysis";
+"biorythm_description" = "Understand your natural sleep cycles and optimize your rest";
+"begin_analysis" = "BEGIN ANALYSIS";
+"unlock_all_features" = "UNLOCK ALL FEATURES";
+"rate_us" = "RATE US ON THE APP STORE";
+"contact_us" = "CONTACT US";
+
+// Profile/Settings View
+"settings" = "Settings";
+"account" = "Account";
+"edit" = "Edit";
+"premium_account" = "Premium Account";
+"free_account" = "Free Account";
+"upgrade_to_premium_short" = "Upgrade to Premium";
+"upgrade_description" = "Get access to all features";
+"preferences" = "Preferences";
+"dark_mode" = "Dark Mode";
+"notifications" = "Notifications";
+"dream_reminders" = "Dream Reminders";
+"daily_reminder_at" = "Daily reminder at %@";
+"get_reminded" = "Get reminded to log your dreams";
+"haptics" = "Haptics";
+"language" = "Language";
+"app_language" = "App Language";
+"system" = "System (%@)";
+"select_language" = "Select Language";
+"cancel" = "Cancel";
+"system_default" = "System Default";
+
+// Support Section
+"support" = "Support";
+"help_center" = "Help Center";
+"contact_support" = "Contact Support";
+"rate_app" = "Rate App";
+
+// Legal Section
+"legal" = "Legal";
+"privacy_policy" = "Privacy Policy";
+"terms_of_service" = "Terms of Service";
+"eula" = "EULA";
+"user_agreement" = "User Agreement";
+
+// Account Actions Section
+"account_actions" = "Account Actions";
+"delete_all_data" = "DELETE ALL DATA";
+"delete_data_title" = "Delete All Data?";
+"delete_data_message" = "This will delete all your data and reset the app to its initial state. This action cannot be undone.";
+"delete" = "Delete";
+"cancel" = "Cancel";
+
+// Other views and components can be added as needed 

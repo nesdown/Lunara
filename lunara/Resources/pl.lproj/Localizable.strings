@@ -1,0 +1,76 @@
+/* 
+  Localizable.strings
+  Lunara
+*/
+
+// Tab Bar
+"tab_dreams" = "Sny";
+"tab_journal" = "Dziennik";
+"tab_learn" = "Nauka";
+"tab_profile" = "Profil";
+
+// Home View
+"home_title" = "Strona główna";
+"good_morning" = "Dzień dobry!";
+"good_day" = "Miłego dnia!";
+"good_evening" = "Dobry wieczór!";
+"sleep_well" = "Dobranoc!";
+"dream_interpreter" = "Tłumacz Snów";
+"dream_interpreter_description" = "Zapisuj i rozumiej swoje sny dzięki interpretacji wspomaganej sztuczną inteligencją";
+"new_dream_entry" = "NOWY WPIS SNÓ";
+"premium_features" = "Funkcje Premium";
+"premium_features_description" = "Uzyskaj nieograniczoną liczbę interpretacji snów, zaawansowane analizy i spersonalizowane rekomendacje";
+"upgrade_to_premium" = "PRZEJDŹ NA PREMIUM";
+"recent_dreams" = "Ostatnie Sny";
+"no_dreams_yet" = "Brak Snów";
+"biorythm_analysis" = "Analiza Biorytmu";
+"biorythm_description" = "Zrozum swoje naturalne cykle snu i zoptymalizuj swój odpoczynek";
+"begin_analysis" = "ROZPOCZNIJ ANALIZĘ";
+"unlock_all_features" = "ODBLOKUJ WSZYSTKIE FUNKCJE";
+"rate_us" = "OCEŃ NAS W APP STORE";
+"contact_us" = "SKONTAKTUJ SIĘ Z NAMI";
+
+// Profile/Settings View
+"settings" = "Ustawienia";
+"account" = "Konto";
+"edit" = "Edytuj";
+"premium_account" = "Konto Premium";
+"free_account" = "Konto Darmowe";
+"upgrade_to_premium_short" = "Przejdź na Premium";
+"upgrade_description" = "Uzyskaj dostęp do wszystkich funkcji";
+"preferences" = "Preferencje";
+"dark_mode" = "Tryb Ciemny";
+"notifications" = "Powiadomienia";
+"dream_reminders" = "Przypomnienia o Snach";
+"daily_reminder_at" = "Codzienne przypomnienie o %@";
+"get_reminded" = "Otrzymuj przypomnienia o zapisywaniu snów";
+"haptics" = "Wibracje";
+"language" = "Język";
+"app_language" = "Język Aplikacji";
+"system" = "System (%@)";
+"select_language" = "Wybierz Język";
+"cancel" = "Anuluj";
+"system_default" = "Domyślny Systemowy";
+
+// Support Section
+"support" = "Wsparcie";
+"help_center" = "Centrum Pomocy";
+"contact_support" = "Kontakt z Pomocą";
+"rate_app" = "Oceń Aplikację";
+
+// Legal Section
+"legal" = "Prawne";
+"privacy_policy" = "Polityka Prywatności";
+"terms_of_service" = "Warunki Korzystania";
+"eula" = "EULA";
+"user_agreement" = "Umowa Użytkownika";
+
+// Account Actions Section
+"account_actions" = "Działania na Koncie";
+"delete_all_data" = "USUŃ WSZYSTKIE DANE";
+"delete_data_title" = "Usunąć Wszystkie Dane?";
+"delete_data_message" = "Spowoduje to usunięcie wszystkich danych i zresetowanie aplikacji do stanu początkowego. Tej akcji nie można cofnąć.";
+"delete" = "Usuń";
+"cancel" = "Anuluj";
+
+// Other views and components can be added as needed 

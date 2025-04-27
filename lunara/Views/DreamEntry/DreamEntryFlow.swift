@@ -101,6 +101,12 @@ struct DreamEntryFlow: View {
                                 hadNegativeEmotions: viewModel.hadNegativeEmotions,
                                 intensityLevel: viewModel.intensityLevel
                             )
+                            
+                            // Automatically save the dream if interpretation is successful
+                            if viewModel.interpretation != nil {
+                                viewModel.saveDreamToJournal()
+                            }
+                            
                             // Delay the navigation to results to show loading animation
                             try? await Task.sleep(nanoseconds: 500_000_000)
                             withAnimation(AppAnimation.gentleSpring) {
@@ -124,6 +130,12 @@ struct DreamEntryFlow: View {
                                 hadNegativeEmotions: viewModel.hadNegativeEmotions,
                                 intensityLevel: viewModel.intensityLevel
                             )
+                            
+                            // Automatically save the dream if interpretation is successful
+                            if viewModel.interpretation != nil {
+                                viewModel.saveDreamToJournal()
+                            }
+                            
                             // Delay the navigation to results to show loading animation
                             try? await Task.sleep(nanoseconds: 500_000_000)
                             withAnimation(AppAnimation.gentleSpring) {

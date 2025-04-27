@@ -88,11 +88,11 @@ enum MoodOption: String, CaseIterable, Identifiable, Hashable {
     
     var description: String {
         switch self {
-        case .happy: return "Happy"
-        case .calm: return "Calm"
-        case .thoughtful: return "Thoughtful" 
-        case .confused: return "Confused"
-        case .sad: return "Sad"
+        case .happy: return StringsProvider.shared.localizedString("journal_mood_happy")
+        case .calm: return StringsProvider.shared.localizedString("journal_mood_calm")
+        case .thoughtful: return StringsProvider.shared.localizedString("journal_mood_thoughtful")
+        case .confused: return StringsProvider.shared.localizedString("journal_mood_confused")
+        case .sad: return StringsProvider.shared.localizedString("journal_mood_sad")
         }
     }
 }
@@ -276,7 +276,7 @@ struct EmptyDreamsView: View {
             }
             .animation(Animation.spring(response: 0.6, dampingFraction: 0.7), value: isAppearing)
             
-            Text("No dreams logged for this magical night ✨")
+            Text(StringsProvider.shared.localizedString("journal_no_dreams"))
                 .font(.system(size: 16))
                 .foregroundColor(DynamicColors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -2064,7 +2064,7 @@ struct JournalView: View {
                 
                 VStack(spacing: 0) {
             TopBarView(
-                        title: "Journal",
+                        title: StringsProvider.shared.localizedString("journal_title"),
                 primaryPurple: primaryPurple,
                 colorScheme: colorScheme,
                 rightButtons: [
@@ -2094,9 +2094,9 @@ struct JournalView: View {
                     
                     // Tab Selection - Updated to include Tracker tab
                     Picker("View Selection", selection: $selectedTab) {
-                        Text("Tracker").tag(0)
-                        Text("Calendar").tag(1)
-                        Text("All Dreams").tag(2)
+                        Text(StringsProvider.shared.localizedString("journal_tab_tracker")).tag(0)
+                        Text(StringsProvider.shared.localizedString("journal_tab_calendar")).tag(1)
+                        Text(StringsProvider.shared.localizedString("journal_tab_all_dreams")).tag(2)
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal, 16)
@@ -2176,14 +2176,14 @@ struct JournalView: View {
                     // Add a navigation view with a dismiss button to handle case when no dream is selected
                     NavigationView {
                         VStack {
-                            Text("No dream selected")
+                            Text(StringsProvider.shared.localizedString("journal_no_dream_selected"))
                                 .font(.title2)
                                 .foregroundColor(.secondary)
                                 .onAppear {
                                     print("ERROR: No dream selected but trying to show details")
                                 }
                         }
-                        .navigationBarItems(trailing: Button("Close") {
+                        .navigationBarItems(trailing: Button(StringsProvider.shared.localizedString("journal_close")) {
                             showingDreamDetails = false
                         })
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -2224,16 +2224,16 @@ struct JournalView: View {
                             
                             // Right part - Text
                             VStack(alignment: .leading, spacing: 4) {
-                            Text("Your Biography")
+                            Text(StringsProvider.shared.localizedString("journal_your_biography"))
                                     .font(.title3)
                                     .fontWeight(.semibold)
                             if userBiography.isEmpty {
-                                Text("Adding a biography will help personalize your dream interpretations")
+                                Text(StringsProvider.shared.localizedString("journal_biography_add_help"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .lineSpacing(2)
                             } else {
-                                Text("Your personal details help create more accurate dream interpretations")
+                                Text(StringsProvider.shared.localizedString("journal_biography_edit_help"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .lineSpacing(2)
@@ -2271,8 +2271,9 @@ struct JournalView: View {
                             HStack(spacing: 8) {
                             Image(systemName: userBiography.isEmpty ? "pencil" : "pencil.line")
                                     .font(.system(size: 16, weight: .semibold))
-                            Text(userBiography.isEmpty ? "ADD BIOGRAPHY" : "EDIT BIOGRAPHY")
+                            Text(userBiography.isEmpty ? StringsProvider.shared.localizedString("journal_add_biography") : StringsProvider.shared.localizedString("journal_edit_biography"))
                                     .font(.system(size: 16, weight: .semibold))
+                            }
                             }
                             .foregroundColor(primaryPurple)
                             .frame(maxWidth: .infinity)
@@ -2306,16 +2307,16 @@ struct JournalView: View {
                         
                         // Right part - Text
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Daily Mood")
+                            Text(StringsProvider.shared.localizedString("journal_daily_mood"))
                                 .font(.title3)
                                 .fontWeight(.semibold)
                             if selectedMood != nil {
-                                Text("Your mood for today has been recorded")
+                                Text(StringsProvider.shared.localizedString("journal_mood_recorded"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .lineSpacing(2)
                             } else {
-                        Text("How are you feeling today?")
+                        Text(StringsProvider.shared.localizedString("journal_how_feeling_today"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .lineSpacing(2)
@@ -2380,7 +2381,7 @@ struct JournalView: View {
                                             .font(.system(size: 24))
                                             .foregroundColor(primaryPurple)
                                         
-                                        Text("Mood logged!")
+                                        Text(StringsProvider.shared.localizedString("journal_mood_logged"))
                                             .font(.headline)
                                             .foregroundColor(primaryPurple)
                                     }
@@ -2389,7 +2390,7 @@ struct JournalView: View {
                             }
                         }
                         
-                        Text(selectedMood?.description ?? "Select your mood")
+                        Text(selectedMood?.description ?? StringsProvider.shared.localizedString("journal_mood_select"))
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(selectedMood != nil ? primaryPurple : .secondary)
                             .animation(.easeInOut, value: selectedMood)
@@ -2434,7 +2435,7 @@ struct JournalView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 16, weight: .semibold))
-                        Text("EXPLORE ALL SYMBOLS")
+                        Text(StringsProvider.shared.localizedString("journal_explore_symbols"))
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .foregroundColor(.white)
@@ -2663,7 +2664,7 @@ struct JournalView: View {
                 
                 // Dreams for selected date
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Dreams on \(formatDateHeader(selectedDate))")
+                    Text(String(format: StringsProvider.shared.localizedString("journal_dreams_on_date"), formatDateHeader(selectedDate)))
                         .font(.title3)
                         .fontWeight(.semibold)
                         .opacity(calendarMonthChanged ? 0.0 : 1.0)

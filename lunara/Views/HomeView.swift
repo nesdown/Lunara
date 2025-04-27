@@ -2,6 +2,9 @@ import SwiftUI
 import Models
 import StoreKit
 
+// Import DynamicColors from the main module
+import UIKit
+
 struct HomeView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var themeSettings: ThemeSettings
@@ -29,9 +32,14 @@ struct HomeView: View {
     @State private var biorythmButtonColor: Color = Color(red: 147/255, green: 112/255, blue: 219/255)
     @State private var biorythmButtonBlur: CGFloat = 0.0
     
-    // Custom colors
+    // Custom colors - define them inline
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
+    
+    // Custom helper for cardBackgroundColor
+    private var cardBackgroundColor: Color {
+        return colorScheme == .dark ? Color(white: 0.15) : .white
+    }
     
     // Dreams data
     @State private var latestDreams: [DreamEntry] = []
@@ -84,16 +92,16 @@ struct HomeView: View {
         let emojis: [String]
         
         if hour >= 5 && hour < 12 {
-            greeting = "Good morning!"
+            greeting = StringsProvider.shared.localizedString("good_morning")
             emojis = ["☀️", "🌅", "🌄", "🌻", "🍳", "☕️"]
         } else if hour >= 12 && hour < 17 {
-            greeting = "Afternoon!"
+            greeting = StringsProvider.shared.localizedString("good_day")
             emojis = ["🌞", "🌈", "🏖️", "🍹", "🌤️", "🌻"]
         } else if hour >= 17 && hour < 22 {
-            greeting = "Evening!"
+            greeting = StringsProvider.shared.localizedString("good_evening")
             emojis = ["🌙", "✨", "🌆", "🌃", "🥂", "🍷"]
         } else {
-            greeting = "Good night!"
+            greeting = StringsProvider.shared.localizedString("sleep_well")
             emojis = ["💤", "🌛", "🌜", "🌌", "🌠", "🦉"]
         }
         
@@ -117,16 +125,16 @@ struct HomeView: View {
         let emojis: [String]
         
         if hour >= 5 && hour < 12 {
-            greeting = "Good morning!"
+            greeting = StringsProvider.shared.localizedString("good_morning")
             emojis = ["☀️", "🌅", "🌄", "🌻", "🍳", "☕️"]
         } else if hour >= 12 && hour < 17 {
-            greeting = "Good day!"
+            greeting = StringsProvider.shared.localizedString("good_day")
             emojis = ["🌞", "🌈", "🏖️", "🍹", "🌤️", "🌻"]
         } else if hour >= 17 && hour < 22 {
-            greeting = "G'evening!"
+            greeting = StringsProvider.shared.localizedString("good_evening")
             emojis = ["🌙", "✨", "🌆", "🌃", "🥂", "🍷"]
         } else {
-            greeting = "Sleep well!"
+            greeting = StringsProvider.shared.localizedString("sleep_well")
             emojis = ["💤", "🌛", "🌜", "🌌", "🌠", "🦉"]
         }
         
@@ -152,6 +160,9 @@ struct HomeView: View {
                 .foregroundColor(.secondary)
         }
     }
+    
+    // Add state variable for language refresh
+    @State private var languageRefresh: Bool = false
     
     var body: some View {
         NavigationView {
@@ -184,10 +195,10 @@ struct HomeView: View {
                                     
                                     // Right part - Text
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Dream Interpreter")
+                                        Text(StringsProvider.shared.localizedString("dream_interpreter"))
                                             .font(.title3)
                                             .fontWeight(.semibold)
-                                        Text("Record and understand your dreams with AI-powered interpretation")
+                                        Text(StringsProvider.shared.localizedString("dream_interpreter_description"))
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                             .lineSpacing(2)
@@ -230,7 +241,7 @@ struct HomeView: View {
                                     HStack(spacing: 8) {
                                         Image(systemName: "plus.circle.fill")
                                             .font(.system(size: 16, weight: .semibold))
-                                        Text("NEW DREAM ENTRY")
+                                        Text(StringsProvider.shared.localizedString("new_dream_entry"))
                                             .font(.system(size: 16, weight: .semibold))
                                     }
                                     .foregroundColor(primaryPurple)
@@ -240,7 +251,7 @@ struct HomeView: View {
                                 .padding(.horizontal, 16)
                                 .background(
                                     RoundedRectangle(cornerRadius: 24)
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(cardBackgroundColor.opacity(0.2))
                                         .opacity(newDreamButtonBgOpacity)
                                 )
                                 .scaleEffect(newDreamButtonScale)
@@ -248,13 +259,13 @@ struct HomeView: View {
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
-                                    .fill(.white)
+                                    .fill(cardBackgroundColor)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24)
                                     .strokeBorder(lightPurple, lineWidth: 1)
                             )
-                            .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                            .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             
                             // Premium Features Card
                             if !subscriptionService.isSubscribed() {
@@ -272,10 +283,10 @@ struct HomeView: View {
                                         
                                         // Right part - Text
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text("Premium Features")
+                                            Text(StringsProvider.shared.localizedString("premium_features"))
                                                 .font(.title3)
                                                 .fontWeight(.semibold)
-                                            Text("Get unlimited dream interpretations, advanced insights, and personalized recommendations")
+                                            Text(StringsProvider.shared.localizedString("premium_features_description"))
                                                 .font(.subheadline)
                                                 .foregroundColor(.secondary)
                                                 .lineSpacing(2)
@@ -314,7 +325,7 @@ struct HomeView: View {
                                         HStack(spacing: 8) {
                                             Image(systemName: "crown.fill")
                                                 .font(.system(size: 16, weight: .semibold))
-                                            Text("UPGRADE TO PREMIUM")
+                                            Text(StringsProvider.shared.localizedString("upgrade_to_premium"))
                                                 .font(.system(size: 16, weight: .semibold))
                                         }
                                         .foregroundColor(primaryPurple)
@@ -326,14 +337,79 @@ struct HomeView: View {
                                 }
                                 .background(
                                     RoundedRectangle(cornerRadius: 24)
-                                        .fill(.white)
+                                        .fill(cardBackgroundColor)
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 24)
                                         .strokeBorder(lightPurple, lineWidth: 1)
                                 )
-                                .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                                .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             }
+                            
+                            // Recent Dreams Section
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text(StringsProvider.shared.localizedString("recent_dreams"))
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                
+                                if latestDreams.isEmpty {
+                                    VStack(spacing: 8) {
+                                        Image(systemName: "moon.zzz.fill")
+                                            .font(.system(size: 32))
+                                            .foregroundColor(primaryPurple.opacity(0.5))
+                                        Text(StringsProvider.shared.localizedString("no_dreams_yet"))
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 32)
+                                } else {
+                                    ForEach(latestDreams) { dream in
+                                        Button {
+                                            HapticManager.shared.itemSelected()
+                                            print("Dream selected in HomeView: \(dream.id), \(dream.dreamName)")
+                                            selectedDream = dream
+                                            showingDreamDetails = true
+                                        } label: {
+                                            HStack(spacing: 12) {
+                                                Image(systemName: getDreamIcon(for: dream.dreamName))
+                                                    .font(.system(size: 16))
+                                                    .foregroundColor(primaryPurple)
+                                                
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text(dream.dreamName)
+                                                        .font(.system(size: 16, weight: .medium))
+                                                        .foregroundColor(.primary)
+                                                    
+                                                    Text(formattedDate(dream.createdAt))
+                                                        .font(.system(size: 12))
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                
+                                                Spacer()
+                                                
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        if dream.id != latestDreams.last?.id {
+                                            Divider()
+                                                .background(lightPurple)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .fill(cardBackgroundColor)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .strokeBorder(lightPurple, lineWidth: 1)
+                            )
+                            .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             
                             // Biorythm Analysis Card
                             VStack(spacing: 0) {
@@ -410,78 +486,13 @@ struct HomeView: View {
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
-                                    .fill(.white)
+                                    .fill(cardBackgroundColor)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24)
                                     .strokeBorder(lightPurple, lineWidth: 1)
                             )
-                            .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
-                            
-                            // Recent Dreams Section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Recent Dreams")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                
-                                if latestDreams.isEmpty {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "moon.zzz.fill")
-                                            .font(.system(size: 32))
-                                            .foregroundColor(primaryPurple.opacity(0.5))
-                                        Text("No Dreams Yet")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 32)
-                                } else {
-                                    ForEach(latestDreams) { dream in
-                                        Button {
-                                            HapticManager.shared.itemSelected()
-                                            print("Dream selected in HomeView: \(dream.id), \(dream.dreamName)")
-                                            selectedDream = dream
-                                            showingDreamDetails = true
-                                        } label: {
-                                            HStack(spacing: 12) {
-                                                Image(systemName: getDreamIcon(for: dream.dreamName))
-                                                    .font(.system(size: 16))
-                                                    .foregroundColor(primaryPurple)
-                                                
-                                                VStack(alignment: .leading, spacing: 4) {
-                                                    Text(dream.dreamName)
-                                                        .font(.system(size: 16, weight: .medium))
-                                                        .foregroundColor(.primary)
-                                                    
-                                                    Text(formattedDate(dream.createdAt))
-                                                        .font(.system(size: 12))
-                                                        .foregroundColor(.secondary)
-                                                }
-                                                
-                                                Spacer()
-                                                
-                                                Image(systemName: "chevron.right")
-                                                    .font(.system(size: 14))
-                                                    .foregroundColor(.secondary)
-                                            }
-                                        }
-                                        if dream.id != latestDreams.last?.id {
-                                            Divider()
-                                                .background(lightPurple)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(.white)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .strokeBorder(lightPurple, lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                            .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
                             
                             // Action Buttons
                             VStack(spacing: 16) {
@@ -681,10 +692,20 @@ struct HomeView: View {
         }
         .onAppear {
             loadLatestDreams()
+            
+            // Listen for language change notifications to refresh this view
+            NotificationCenter.default.addObserver(
+                forName: .languageChanged,
+                object: nil,
+                queue: .main
+            ) { _ in
+                languageRefresh.toggle()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .dreamsSaved)) { _ in
             loadLatestDreams()
         }
+        .id(languageRefresh) // Force view refresh when language changes
     }
     
     private func loadLatestDreams() {
@@ -747,9 +768,9 @@ struct ShortPromoView: View {
     @State private var isLoading = false
     @State private var buttonScale = 0.95
     @State private var showGlow = false
-    @State private var elementOpacity = 0.0
+    @State private var elementOpacity: Double = 0.0
     
-    // Custom colors
+    // Gradient background colors
     private let backgroundGradientStart = Color(red: 48/255, green: 25/255, blue: 94/255)
     private let backgroundGradientEnd = Color(red: 80/255, green: 49/255, blue: 149/255)
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
@@ -769,7 +790,7 @@ struct ShortPromoView: View {
                 // Gift icon
                 ZStack {
                     Circle()
-                        .fill(Color.white)
+                        .fill(Color(.systemBackground))
                         .frame(width: 70, height: 70)
                         .shadow(color: primaryPurple.opacity(0.5), radius: 10)
                     

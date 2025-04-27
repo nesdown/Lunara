@@ -3,9 +3,11 @@ import Models
 
 struct DreamInterpretationView: View {
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: DreamInterpretationViewModel
     @State private var selectedTab = 0
-    @State private var showingSaveConfirmation = false
+    @State private var showRemoveConfirmation = false
+    @State private var dreamRemoved = false
     
     // Custom colors
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
@@ -47,6 +49,35 @@ struct DreamInterpretationView: View {
     
     private var overviewContent: some View {
         VStack(alignment: .leading, spacing: 32) {
+            // Original Dream Description (Refined) Section
+            if let refinedDescription = viewModel.interpretation?.refinedDescription {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Image(systemName: "doc.text.fill")
+                            .foregroundColor(primaryPurple)
+                        Text("Here's what you logged:")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    Text(refinedDescription)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(.white)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(lightPurple, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+            }
+            
             // Quick Overview Section
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
@@ -177,58 +208,109 @@ struct DreamInterpretationView: View {
                 
                 // Action Buttons
                 VStack(spacing: 12) {
+                    if dreamRemoved {
+                        HStack(spacing: 10) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(primaryPurple)
+                                .font(.system(size: 20))
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Dream removed successfully")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+                                
+                                Text("Use the X icon in the top corner to close this window")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(.systemGray))
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(.white)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .strokeBorder(lightPurple, lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                        .padding(.horizontal, 12)
+                    }
+                    
                     Button {
-                        viewModel.saveDreamToJournal()
-                        showingSaveConfirmation = true
+                        // Show confirmation dialog instead of immediate deletion
+                        showRemoveConfirmation = true
                     } label: {
                         HStack(spacing: 8) {
-                            Image(systemName: "square.and.arrow.down.fill")
-                            Text("Save to Journal")
+                            Image(systemName: "trash.fill")
+                            Text("Remove from Journal")
                                 .font(.system(size: 16, weight: .medium))
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                                .fill(primaryPurple)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Button {
-                        presentationMode.wrappedValue.dismiss()
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "xmark")
-                            Text("Close")
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        .foregroundColor(Color(.systemGray))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
                         .background(
                             RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color(.systemGray4), lineWidth: 1)
+                                .fill(dreamRemoved ? Color.gray.opacity(0.8) : Color.red.opacity(0.8))
                         )
                     }
                     .buttonStyle(.plain)
+                    .disabled(dreamRemoved)
+                    .alert("Remove Dream", isPresented: $showRemoveConfirmation) {
+                        Button("Cancel", role: .cancel) {}
+                        Button("Remove", role: .destructive) {
+                            let wasRemoved = viewModel.removeDreamFromJournal()
+                            if wasRemoved {
+                                // Show a brief message that the dream was removed
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.success)
+                                
+                                // Set flag to indicate dream was removed
+                                dreamRemoved = true
+                            }
+                        }
+                    } message: {
+                        Text("Are you sure you want to remove this dream from your journal? This action cannot be undone.")
+                    }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 16)
             }
         }
-        .alert("Dream Saved", isPresented: $showingSaveConfirmation) {
-            Button("OK") {
-                presentationMode.wrappedValue.dismiss()
-            }
-        } message: {
-            Text("Your dream interpretation has been saved to your journal.")
-        }
     }
 
     private var overviewTab: some View {
         VStack(alignment: .leading, spacing: 32) {
+            // Original Dream Description (Refined) Section
+            if let refinedDescription = viewModel.interpretation?.refinedDescription {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Image(systemName: "doc.text.fill")
+                            .foregroundColor(primaryPurple)
+                        Text("Here's what you logged:")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    Text(refinedDescription)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(.white)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(lightPurple, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+            }
+            
             // Quick Overview Section
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
@@ -264,17 +346,17 @@ struct DreamInterpretationView: View {
                 
                 HStack(spacing: 32) {
                     ForEach(0..<5) { index in
-        Button {
-            viewModel.feelingRating = index + 1
-        } label: {
-            Text(emojis[index])
-                .font(.system(size: 32))
-                .opacity(index + 1 == viewModel.feelingRating ? 1.0 : 0.5)
-                .scaleEffect(index + 1 == viewModel.feelingRating ? 1.2 : 1.0)
-        }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.3), value: viewModel.feelingRating)
-    }
+                        Button {
+                            viewModel.feelingRating = index + 1
+                        } label: {
+                            Text(emojis[index])
+                                .font(.system(size: 32))
+                                .opacity(index + 1 == viewModel.feelingRating ? 1.0 : 0.5)
+                                .scaleEffect(index + 1 == viewModel.feelingRating ? 1.2 : 1.0)
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.spring(response: 0.3), value: viewModel.feelingRating)
+                    }
                 }
             }
             .padding(.vertical, 24)

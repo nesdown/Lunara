@@ -15,6 +15,7 @@ import SwiftUI
 struct lunaraApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @StateObject private var subscriptionService = SubscriptionService.shared
+    @AppStorage("languageCode") private var languageCode: String?
     
     init() {
         // Only register defaults if the key doesn't exist yet
@@ -24,6 +25,20 @@ struct lunaraApp: App {
         
         // Initialize app version for tracking updates
         setupAppVersion()
+        
+        // Initialize localization
+        setupLocalization()
+    }
+    
+    private func setupLocalization() {
+        // Get language code directly from UserDefaults
+        let languageCode = UserDefaults.standard.string(forKey: "languageCode")
+        
+        // Initialize the StringsProvider with the language code
+        StringsProvider.shared.updateLanguage(languageCode)
+        
+        // Log the current language for debugging
+        print("App initialized with language: \(languageCode ?? "system default")")
     }
     
     private func setupAppVersion() {

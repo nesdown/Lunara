@@ -16,6 +16,7 @@ public struct DreamEntry: Identifiable, Codable, Equatable {
     public var recommendations: String
     public var feelingRating: Int?
     public var starRating: Int?
+    public var refinedDescription: String?
     
     public init(
         id: UUID = UUID(),
@@ -30,7 +31,8 @@ public struct DreamEntry: Identifiable, Codable, Equatable {
         dailyLifeConnection: String = "",
         recommendations: String = "",
         feelingRating: Int? = nil,
-        starRating: Int? = nil
+        starRating: Int? = nil,
+        refinedDescription: String? = nil
     ) {
         self.id = id
         self.description = description
@@ -45,6 +47,7 @@ public struct DreamEntry: Identifiable, Codable, Equatable {
         self.recommendations = recommendations
         self.feelingRating = feelingRating
         self.starRating = starRating
+        self.refinedDescription = refinedDescription
     }
     
     public static func == (lhs: DreamEntry, rhs: DreamEntry) -> Bool {

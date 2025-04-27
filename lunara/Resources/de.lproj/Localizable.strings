@@ -1,0 +1,76 @@
+/* 
+  Localizable.strings
+  Lunara
+*/
+
+// Tab Bar
+"tab_dreams" = "Träume";
+"tab_journal" = "Tagebuch";
+"tab_learn" = "Lernen";
+"tab_profile" = "Profil";
+
+// Home View
+"home_title" = "Startseite";
+"good_morning" = "Guten Morgen!";
+"good_day" = "Guten Tag!";
+"good_evening" = "Guten Abend!";
+"sleep_well" = "Schlaf gut!";
+"dream_interpreter" = "Traumdeuter";
+"dream_interpreter_description" = "Zeichnen Sie Ihre Träume auf und verstehen Sie sie mit KI-gestützter Interpretation";
+"new_dream_entry" = "NEUER TRAUMEINTRAG";
+"premium_features" = "Premium-Funktionen";
+"premium_features_description" = "Erhalten Sie unbegrenzte Traumdeutungen, erweiterte Einblicke und personalisierte Empfehlungen";
+"upgrade_to_premium" = "AUF PREMIUM UPGRADEN";
+"recent_dreams" = "Neueste Träume";
+"no_dreams_yet" = "Noch Keine Träume";
+"biorythm_analysis" = "Biorhythmus-Analyse";
+"biorythm_description" = "Verstehen Sie Ihre natürlichen Schlafzyklen und optimieren Sie Ihre Ruhezeiten";
+"begin_analysis" = "ANALYSE STARTEN";
+"unlock_all_features" = "ALLE FUNKTIONEN FREISCHALTEN";
+"rate_us" = "BEWERTEN SIE UNS IM APP STORE";
+"contact_us" = "KONTAKTIEREN SIE UNS";
+
+// Profile/Settings View
+"settings" = "Einstellungen";
+"account" = "Konto";
+"edit" = "Bearbeiten";
+"premium_account" = "Premium-Konto";
+"free_account" = "Kostenloses Konto";
+"upgrade_to_premium_short" = "Auf Premium upgraden";
+"upgrade_description" = "Zugang zu allen Funktionen erhalten";
+"preferences" = "Präferenzen";
+"dark_mode" = "Dunkelmodus";
+"notifications" = "Benachrichtigungen";
+"dream_reminders" = "Traum-Erinnerungen";
+"daily_reminder_at" = "Tägliche Erinnerung um %@";
+"get_reminded" = "Lassen Sie sich daran erinnern, Ihre Träume aufzuzeichnen";
+"haptics" = "Haptik";
+"language" = "Sprache";
+"app_language" = "App-Sprache";
+"system" = "System (%@)";
+"select_language" = "Sprache auswählen";
+"cancel" = "Abbrechen";
+"system_default" = "Systemstandard";
+
+// Support Section
+"support" = "Support";
+"help_center" = "Hilfe-Center";
+"contact_support" = "Support kontaktieren";
+"rate_app" = "App bewerten";
+
+// Legal Section
+"legal" = "Rechtliches";
+"privacy_policy" = "Datenschutzrichtlinie";
+"terms_of_service" = "Nutzungsbedingungen";
+"eula" = "EULA";
+"user_agreement" = "Benutzervereinbarung";
+
+// Account Actions Section
+"account_actions" = "Kontoaktionen";
+"delete_all_data" = "ALLE DATEN LÖSCHEN";
+"delete_data_title" = "Alle Daten löschen?";
+"delete_data_message" = "Dies löscht alle Ihre Daten und setzt die App auf ihren Ausgangszustand zurück. Diese Aktion kann nicht rückgängig gemacht werden.";
+"delete" = "Löschen";
+"cancel" = "Abbrechen";
+
+// Other views and components can be added as needed 

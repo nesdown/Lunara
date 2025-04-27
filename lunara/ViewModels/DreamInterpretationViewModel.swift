@@ -16,7 +16,7 @@ class DreamInterpretationViewModel: ObservableObject {
     // Interpretation state
     @Published var isLoading = false
     @Published var error: Error?
-    @Published var interpretation: DreamInterpretation?
+    @Published var interpretation: Models.DreamInterpretation?
     @Published var feelingRating: Int = 3
     @Published var starRating: Int = 0
     
@@ -38,12 +38,13 @@ class DreamInterpretationViewModel: ObservableObject {
         self.starRating = existingDream.starRating ?? 0
         
         // Create interpretation from the existing dream data
-        self.interpretation = DreamInterpretation(
+        self.interpretation = Models.DreamInterpretation(
             dreamName: existingDream.dreamName,
             quickOverview: existingDream.quickOverview,
             inDepthInterpretation: existingDream.inDepthInterpretation,
             dailyLifeConnection: existingDream.dailyLifeConnection,
-            recommendations: existingDream.recommendations
+            recommendations: existingDream.recommendations,
+            refinedDescription: existingDream.refinedDescription
         )
         
         print("Dream name: \(existingDream.dreamName)")
@@ -66,11 +67,21 @@ class DreamInterpretationViewModel: ObservableObject {
         error = nil
         
         do {
-            interpretation = try await openAIService.interpretDream(
+            let serviceInterpretation = try await openAIService.interpretDream(
                 description: description,
                 didWakeUp: didWakeUp,
                 hadNegativeEmotions: hadNegativeEmotions,
                 intensityLevel: intensityLevel
+            )
+            
+            // Convert to Models.DreamInterpretation
+            interpretation = Models.DreamInterpretation(
+                dreamName: serviceInterpretation.dreamName,
+                quickOverview: serviceInterpretation.quickOverview,
+                inDepthInterpretation: serviceInterpretation.inDepthInterpretation,
+                dailyLifeConnection: serviceInterpretation.dailyLifeConnection,
+                recommendations: serviceInterpretation.recommendations,
+                refinedDescription: serviceInterpretation.refinedDescription
             )
         } catch {
             self.error = error
@@ -95,7 +106,8 @@ class DreamInterpretationViewModel: ObservableObject {
             dailyLifeConnection: interpretation.dailyLifeConnection,
             recommendations: interpretation.recommendations,
             feelingRating: feelingRating,
-            starRating: starRating
+            starRating: starRating,
+            refinedDescription: interpretation.refinedDescription
         )
         
         // Save to storage service
@@ -118,5 +130,45 @@ class DreamInterpretationViewModel: ObservableObject {
     // Access the dream ID for checking storage status
     func getDreamId() -> UUID? {
         return existingDreamId
+    }
+    
+    // Check if the current dream is saved in the journal
+    func isDreamSavedInJournal() -> Bool {
+        guard let id = existingDreamId else {
+            // For new dreams, we need to check if any dream with the same content exists
+            guard let interpretation = interpretation else { return false }
+            
+            // Get all dreams and check if any has matching dreamName and description
+            let allDreams = storageService.getAllDreams()
+            return allDreams.contains { dream in
+                return dream.dreamName == interpretation.dreamName && 
+                       dream.description == description
+            }
+        }
+        
+        // For existing dreams, simply check if the ID exists
+        return storageService.dreamExists(id: id)
+    }
+    
+    // Remove the current dream from the journal
+    func removeDreamFromJournal() -> Bool {
+        guard let id = existingDreamId else {
+            // For new dreams, try to find a matching dream to remove
+            guard let interpretation = interpretation else { return false }
+            
+            let allDreams = storageService.getAllDreams()
+            if let matchingDream = allDreams.first(where: { 
+                $0.dreamName == interpretation.dreamName && 
+                $0.description == description 
+            }) {
+                storageService.deleteDream(with: matchingDream.id)
+                return true
+            }
+            return false
+        }
+        
+        // For existing dreams, remove by ID
+        storageService.deleteDream(with: id)
+        return true
     }
 } 

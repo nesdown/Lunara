@@ -167,7 +167,8 @@ class OpenAIService {
             "quickOverview": "2-3 sentences summarizing the dream's meaning",
             "inDepthInterpretation": "A detailed analysis split into two paragraphs",
             "dailyLifeConnection": "One paragraph explaining how this dream connects to daily life",
-            "recommendations": "3-4 bullet points of advice based on the dream, each on a new line"
+            "recommendations": "3-4 bullet points of advice based on the dream, each on a new line",
+            "refinedDescription": "The original dream description lightly refined with proper grammar, punctuation, and organization, while preserving the original meaning and experience"
         }
         """
         
@@ -757,6 +758,7 @@ struct DreamInterpretation: Codable {
     let inDepthInterpretation: String
     let dailyLifeConnection: String
     let recommendations: String
+    let refinedDescription: String?
 }
 
 // Add these new methods to the OpenAIService class
