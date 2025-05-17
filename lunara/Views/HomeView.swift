@@ -538,55 +538,53 @@ struct HomeView: View {
                                     .rotationEffect(.degrees(unlockButtonRotation))
                                 }
                                 
-                                Button {
-                                    // Request app store review
-                                    HapticManager.shared.buttonPress()
-                                    
-                                    // Button animation - subtle press with fade
-                                    withAnimation(.easeOut(duration: 0.15)) {
-                                        rateButtonScale = 0.97
-                                        rateButtonOpacity = 0.85
-                                        rateButtonOffset = 0
-                                    }
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                                            rateButtonScale = 1.02
-                                            rateButtonOpacity = 1.0
+                                // Rate Us button - only show if user hasn't rated the app yet
+                                if !RatingService.shared.hasUserRatedApp() {
+                                    Button {
+                                        // Request app store review
+                                        HapticManager.shared.buttonPress()
+                                        
+                                        // Button animation - subtle press with fade
+                                        withAnimation(.easeOut(duration: 0.15)) {
+                                            rateButtonScale = 0.97
+                                            rateButtonOpacity = 0.85
+                                            rateButtonOffset = 0
                                         }
                                         
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-                                                rateButtonScale = 1.0
+                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                                rateButtonScale = 1.02
+                                                rateButtonOpacity = 1.0
+                                            }
+                                            
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                                    rateButtonScale = 1.0
+                                                }
                                             }
                                         }
-                                    }
-                                    
-                                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                                        if #available(iOS 18.0, *) {
-                                            StoreKit.AppStore.requestReview(in: scene)
-                                        } else {
-                                            SKStoreReviewController.requestReview(in: scene)
+                                        
+                                        // Use our RatingService for consistent tracking
+                                        RatingService.shared.requestSystemReview()
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "star.bubble.fill")
+                                                .font(.system(size: 16, weight: .semibold))
+                                            Text("RATE US ON THE APP STORE")
+                                                .font(.system(size: 16, weight: .semibold))
                                         }
+                                        .foregroundColor(Color(.systemGray))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 24)
+                                                .strokeBorder(Color(.systemGray), lineWidth: 1)
+                                        )
                                     }
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "star.bubble.fill")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text("RATE US ON THE APP STORE")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(Color(.systemGray))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .strokeBorder(Color(.systemGray), lineWidth: 1)
-                                    )
+                                    .scaleEffect(rateButtonScale)
+                                    .offset(y: rateButtonOffset)
+                                    .opacity(rateButtonOpacity)
                                 }
-                                .scaleEffect(rateButtonScale)
-                                .offset(y: rateButtonOffset)
-                                .opacity(rateButtonOpacity)
                                 
                                 Button {
                                     // Open Contact Support URL

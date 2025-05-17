@@ -15,6 +15,7 @@ import SwiftUI
 struct lunaraApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @StateObject private var subscriptionService = SubscriptionService.shared
+    @StateObject private var ratingService = RatingService.shared
     
     init() {
         // Only register defaults if the key doesn't exist yet
@@ -45,6 +46,13 @@ struct lunaraApp: App {
         WindowGroup {
             if hasCompletedOnboarding {
                 MainView()
+                    .withCustomRating() // Apply our custom rating view
+                    .onAppear {
+                        // Check if we should show rating prompt on app launch
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            ratingService.checkAndRequestReview()
+                        }
+                    }
             } else {
                 OnboardingFlow()
             }

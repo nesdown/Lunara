@@ -222,15 +222,10 @@ class OnboardingViewModel: ObservableObject {
             // No longer showing subscription view
             hasCompletedOnboarding = true
             
-            // Request app store review 
+            // Request app store review after onboarding (part of our rating strategy)
+            // We'll use our RatingService to track this request
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                    if #available(iOS 18.0, *) {
-                        StoreKit.AppStore.requestReview(in: scene)
-                    } else {
-                        SKStoreReviewController.requestReview(in: scene)
-                    }
-                }
+                RatingService.shared.requestSystemReview()
             }
         } else {
             // Move to the next page
