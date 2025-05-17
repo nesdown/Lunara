@@ -158,6 +158,10 @@ class SubscriptionService: ObservableObject {
     // MARK: - Subscription Status
     
     func isSubscribed() -> Bool {
+        // During testing phase, all users have premium access
+        return true
+        
+        /* Original implementation - uncomment when reactivating subscriptions
         // Check for test mode - if username is "premiumuser"
         if isPremiumTestUser() {
             return true
@@ -165,6 +169,7 @@ class SubscriptionService: ObservableObject {
         
         // Regular subscription check
         return !purchasedProductIDs.isEmpty
+        */
     }
     
     // Test mode helper function

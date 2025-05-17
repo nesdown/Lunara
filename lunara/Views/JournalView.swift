@@ -45,6 +45,7 @@ class BiographyService {
     
     private let userDefaults = UserDefaults.standard
     private let biographyKey = "userBiography"
+    private let biographyStructuredKey = "userBiographyStructured"
     
     func saveBiography(_ text: String) {
         userDefaults.set(text, forKey: biographyKey)
@@ -54,9 +55,142 @@ class BiographyService {
         return userDefaults.string(forKey: biographyKey) ?? ""
     }
     
-    func hasBiography() -> Bool {
-        return !getBiography().isEmpty
+    func saveStructuredBiography(_ biography: StructuredBiography) {
+        if let encoded = try? JSONEncoder().encode(biography) {
+            userDefaults.set(encoded, forKey: biographyStructuredKey)
+        }
     }
+    
+    func getStructuredBiography() -> StructuredBiography {
+        if let data = userDefaults.data(forKey: biographyStructuredKey),
+           let biography = try? JSONDecoder().decode(StructuredBiography.self, from: data) {
+            return biography
+        }
+        return StructuredBiography()
+    }
+    
+    func hasBiography() -> Bool {
+        return !getBiography().isEmpty || !getStructuredBiography().isEmpty
+    }
+}
+
+// Structured biography model
+struct StructuredBiography: Codable {
+    var lifestyle: Set<Lifestyle> = []
+    var sleepHabits: Set<SleepHabit> = []
+    var personalFactors: Set<PersonalFactor> = []
+    var healthFactors: Set<HealthFactor> = []
+    var dailyActivities: Set<DailyActivity> = []
+    var additionalNotes: String = ""
+    
+    var isEmpty: Bool {
+        return lifestyle.isEmpty && 
+               sleepHabits.isEmpty && 
+               personalFactors.isEmpty &&
+               healthFactors.isEmpty &&
+               dailyActivities.isEmpty &&
+               additionalNotes.isEmpty
+    }
+    
+    // Helper method to get a summary
+    func getSummary() -> String {
+        var summary = ""
+        
+        if !lifestyle.isEmpty {
+            summary += "Lifestyle: " + lifestyle.map { $0.rawValue }.joined(separator: ", ") + ". "
+        }
+        
+        if !sleepHabits.isEmpty {
+            summary += "Sleep: " + sleepHabits.map { $0.rawValue }.joined(separator: ", ") + ". "
+        }
+        
+        if !personalFactors.isEmpty {
+            summary += "Personal: " + personalFactors.map { $0.rawValue }.joined(separator: ", ") + ". "
+        }
+        
+        if !healthFactors.isEmpty {
+            summary += "Health: " + healthFactors.map { $0.rawValue }.joined(separator: ", ") + ". "
+        }
+        
+        if !dailyActivities.isEmpty {
+            summary += "Activities: " + dailyActivities.map { $0.rawValue }.joined(separator: ", ") + ". "
+        }
+        
+        if !additionalNotes.isEmpty {
+            if !summary.isEmpty {
+                summary += "\n"
+            }
+            summary += additionalNotes
+        }
+        
+        return summary
+    }
+}
+
+// Enums for structured biography options
+enum Lifestyle: String, Codable, CaseIterable, Identifiable {
+    case urban = "Urban Living"
+    case suburban = "Suburban Living"
+    case rural = "Rural Living"
+    case highStress = "High-Stress Job"
+    case creative = "Creative Field"
+    case technical = "Technical Field"
+    case activeTravel = "Frequent Travel"
+    case student = "Student"
+    case parent = "Parent"
+    
+    var id: String { self.rawValue }
+}
+
+enum SleepHabit: String, Codable, CaseIterable, Identifiable {
+    case earlyRiser = "Early Riser"
+    case nightOwl = "Night Owl"
+    case lightSleeper = "Light Sleeper"
+    case deepSleeper = "Deep Sleeper"
+    case irregular = "Irregular Sleep Schedule"
+    case sleeplessNights = "Occasional Sleepless Nights"
+    case napTaker = "Regular Napper"
+    
+    var id: String { self.rawValue }
+}
+
+enum PersonalFactor: String, Codable, CaseIterable, Identifiable {
+    case highlyCreative = "Highly Creative"
+    case analytical = "Analytical Thinker"
+    case vivid = "Vivid Imagination"
+    case spiritual = "Spiritual/Mystical"
+    case rational = "Rational/Logical"
+    case empathetic = "Highly Empathetic"
+    case introvert = "Introvert"
+    case extrovert = "Extrovert"
+    
+    var id: String { self.rawValue }
+}
+
+enum HealthFactor: String, Codable, CaseIterable, Identifiable {
+    case meditation = "Regular Meditation"
+    case exercise = "Regular Exercise"
+    case chronicIssue = "Chronic Health Issue"
+    case anxiety = "Anxiety"
+    case depression = "Depression"
+    case useMedication = "Taking Medication"
+    case headaches = "Frequent Headaches"
+    case vitaminSupplement = "Take Vitamins/Supplements"
+    
+    var id: String { self.rawValue }
+}
+
+enum DailyActivity: String, Codable, CaseIterable, Identifiable {
+    case screenTime = "High Screen Time"
+    case reading = "Regular Reading"
+    case gaming = "Video Games"
+    case outdoorTime = "Outdoor Activities"
+    case sports = "Sports/Athletics"
+    case arts = "Arts/Crafts"
+    case socializing = "Active Social Life"
+    case cooking = "Cooking/Baking"
+    
+    var id: String { self.rawValue }
 }
 
 extension DateComponents {
@@ -304,23 +438,24 @@ struct EmptyDreamsView: View {
 struct BiographyInputView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) var colorScheme
-    @State private var biographyText: String
-    @FocusState private var isTextFieldFocused: Bool
-    @State private var isAppearing = false
-    @State private var isSaving = false
     @Binding var parentBiography: String
     
+    // View state
+    @State private var currentStep = 1
+    @State private var isAppearing = false
+    @State private var isSaving = false
+    
+    // Structured biography data
+    @State private var biography = BiographyService.shared.getStructuredBiography()
+    @State private var additionalNotes = ""
+    
     // For keyboard avoidance
+    @FocusState private var isTextFieldFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
     
+    // Colors
     private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
     private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
-    
-    // Initialize with existing biography if available
-    init(parentBiography: Binding<String>) {
-        self._parentBiography = parentBiography
-        _biographyText = State(initialValue: BiographyService.shared.getBiography())
-    }
     
     var body: some View {
         NavigationView {
@@ -328,54 +463,372 @@ struct BiographyInputView: View {
                 Color(.systemBackground)
                     .edgesIgnoringSafeArea(.all)
                 
+                VStack(spacing: 0) {
+                    // Top bar with title and close button
+                    HStack {
+                        Spacer()
+                        
+                        Text("Your Biography")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Spacer()
+                        
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.trailing)
+                    }
+                    .padding(.top)
+                    .padding(.bottom, 8)
+                    
+                    // Progress indicator
+                    ProgressBar(currentStep: currentStep, totalSteps: 6)
+                        .padding(.horizontal)
+                        .padding(.bottom, 16)
+                    
+                    // Main content with step navigation
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Header with Icon
-                        VStack(spacing: 16) {
-                            // Left part - Icon
-                            ZStack {
-                                Circle()
-                                    .fill(lightPurple)
-                                    .frame(width: 80, height: 80)
-                                    .scaleEffect(isAppearing ? 1.0 : 0.8)
-                                    .opacity(isAppearing ? 1.0 : 0.0)
-                                
-                                Image(systemName: "person.text.rectangle.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(primaryPurple)
-                                    .scaleEffect(isAppearing ? 1.0 : 0.6)
-                                    .opacity(isAppearing ? 1.0 : 0.0)
-                                    .rotationEffect(.degrees(isAppearing ? 0 : -30))
+                            // Content based on current step
+                            switch currentStep {
+                            case 1:
+                                introductionView
+                            case 2:
+                                lifestyleView
+                            case 3:
+                                sleepHabitsView
+                            case 4:
+                                personalFactorsView
+                            case 5:
+                                healthFactorsView
+                            case 6:
+                                dailyActivitiesView
+                            case 7:
+                                additionalNotesView
+                            default:
+                                EmptyView()
                             }
-                            .animation(AppAnimation.spring.delay(0.1), value: isAppearing)
-                            
-                            Text("Your Biography")
-                                .font(.system(size: 28, weight: .bold))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 8)
-                                .opacity(isAppearing ? 1.0 : 0.0)
-                                .offset(y: isAppearing ? 0 : 20)
-                                .animation(AppAnimation.spring.delay(0.2), value: isAppearing)
                         }
-                        .padding(.top, 16)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 80)
+                    }
+                    
+                    // Navigation buttons
+                    HStack(spacing: 16) {
+                        // Back button (except on first step)
+                        if currentStep > 1 {
+                            Button {
+                                withAnimation {
+                                    currentStep -= 1
+                                }
+                            } label: {
+                                Text("Back")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                    .padding(.vertical, 16)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(24)
+                            }
+                        }
                         
-                        // Explanation
-                        Text("Your biography helps personalize dream interpretations. Tell us about your life, interests, and experiences that might influence your dreams.")
-                            .font(.system(size: 16))
-                            .foregroundColor(.secondary)
+                        // Continue/Next button
+                        Button {
+                            // Add haptic feedback
+                            HapticManager.shared.buttonPress()
+                            
+                            withAnimation {
+                                if currentStep == 7 {
+                                    // Last step - save data
+                                    saveAndDismiss()
+                                } else {
+                                    currentStep += 1
+                                }
+                            }
+                        } label: {
+                            Text(currentStep == 7 ? "Save" : "Continue")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.vertical, 16)
+                                .frame(maxWidth: .infinity)
+                                .background(primaryPurple)
+                                .cornerRadius(24)
+                        }
+                    }
+                    .padding()
+                    .background(
+                        Rectangle()
+                            .fill(Color(.systemBackground))
+                            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: -5)
+                    )
+                }
+            }
+            .onAppear {
+                // Trigger appearance animations
+                withAnimation(AppAnimation.gentleSpring) {
+                    isAppearing = true
+                }
+                
+                // Load existing data if available
+                additionalNotes = biography.additionalNotes
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    keyboardHeight = keyboardFrame.height
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                keyboardHeight = 0
+            }
+        }
+    }
+    
+    // MARK: - Step Views
+    
+    private var introductionView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+                                Image(systemName: "person.text.rectangle.fill")
+                .font(.system(size: 50))
+                                    .foregroundColor(primaryPurple)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 4)
+            
+            Text("About Your Biography")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Tell us about yourself to help Lunara better analyze your dreams. Your personal details provide context that helps create more accurate and personalized interpretations.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
+                .padding(.bottom, 4)
+            
+            Text("The information is stored securely on your device and is never shared with third parties.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 8)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    private var lifestyleView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Your Lifestyle")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Select all options that apply to your current lifestyle.")
+                .font(.subheadline)
+                                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
+            VStack(spacing: 10) {
+                ForEach(Lifestyle.allCases) { option in
+                    CheckboxRow(
+                        title: option.rawValue,
+                        isSelected: biography.lifestyle.contains(option),
+                        action: {
+                            toggleSelection(option, in: &biography.lifestyle)
+                        }
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    private var sleepHabitsView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Your Sleep Habits")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Select all options that describe your typical sleep patterns.")
+                .font(.subheadline)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
-                            .opacity(isAppearing ? 1.0 : 0.0)
-                            .offset(y: isAppearing ? 0 : 15)
-                            .animation(AppAnimation.spring.delay(0.3), value: isAppearing)
-                        
-                        // Text Input
-                        VStack(spacing: 16) {
-                            // Fixed width container to match button width
-                            VStack(spacing: 0) {
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
+            VStack(spacing: 10) {
+                ForEach(SleepHabit.allCases) { option in
+                    CheckboxRow(
+                        title: option.rawValue,
+                        isSelected: biography.sleepHabits.contains(option),
+                        action: {
+                            toggleSelection(option, in: &biography.sleepHabits)
+                        }
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    private var personalFactorsView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Your Personality")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Select all options that describe your personality traits.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
+            VStack(spacing: 10) {
+                ForEach(PersonalFactor.allCases) { option in
+                    CheckboxRow(
+                        title: option.rawValue,
+                        isSelected: biography.personalFactors.contains(option),
+                        action: {
+                            toggleSelection(option, in: &biography.personalFactors)
+                        }
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    private var healthFactorsView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Health Factors")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Select any health factors that may influence your dreams.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
+            VStack(spacing: 10) {
+                ForEach(HealthFactor.allCases) { option in
+                    CheckboxRow(
+                        title: option.rawValue,
+                        isSelected: biography.healthFactors.contains(option),
+                        action: {
+                            toggleSelection(option, in: &biography.healthFactors)
+                        }
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    private var dailyActivitiesView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Daily Activities")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Select activities that are regular parts of your daily life.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
+            VStack(spacing: 10) {
+                ForEach(DailyActivity.allCases) { option in
+                    CheckboxRow(
+                        title: option.rawValue,
+                        isSelected: biography.dailyActivities.contains(option),
+                        action: {
+                            toggleSelection(option, in: &biography.dailyActivities)
+                        }
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    private var additionalNotesView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Additional Information")
+                .font(.title3)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Is there anything else you'd like to share that might help with your dream analysis?")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
                                 ZStack(alignment: .bottomTrailing) {
-                                    TextEditor(text: $biographyText)
-                                        .frame(minHeight: 200)
+                TextEditor(text: $additionalNotes)
+                    .frame(minHeight: 150)
                                         .padding()
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
@@ -387,8 +840,8 @@ struct BiographyInputView: View {
                                         )
                                         .overlay(
                                             Group {
-                                                if biographyText.isEmpty {
-                                                    Text("Tell us about yourself...")
+                            if additionalNotes.isEmpty {
+                                Text("Optional: Any other relevant details about yourself...")
                                                         .foregroundColor(.secondary)
                                                         .padding(.horizontal, 24)
                                                         .padding(.vertical, 24)
@@ -398,120 +851,64 @@ struct BiographyInputView: View {
                                             alignment: .topLeading
                                         )
                                         .focused($isTextFieldFocused)
-                                        .toolbar {
-                                            ToolbarItemGroup(placement: .keyboard) {
-                                                Spacer()
-                                                Button("Done") {
-                                                    isTextFieldFocused = false
-                                                }
-                                                .foregroundColor(primaryPurple)
-                                                .font(.headline)
-                                            }
-                                        }
                                     
                                     VoiceInputButton(color: primaryPurple) { text in
-                                        if biographyText.isEmpty {
-                                            biographyText = text
+                    if additionalNotes.isEmpty {
+                        additionalNotes = text
                                         } else {
-                                            biographyText += " " + text
+                        additionalNotes += " " + text
                                         }
                                         // Add haptic feedback when text is updated
                                         HapticManager.shared.success()
                                     }
                                     .padding([.bottom, .trailing], 16)
-                                    .scaleEffect(isAppearing ? 1.0 : 0.0)
-                                    .animation(AppAnimation.spring.delay(0.5), value: isAppearing)
-                                }
-                            }
-                            .padding(.horizontal, 24) // Match button's horizontal padding
-                            .opacity(isAppearing ? 1.0 : 0.0)
-                            .offset(y: isAppearing ? 0 : 20)
-                            .animation(AppAnimation.spring.delay(0.4), value: isAppearing)
-                            
-                            Text("This information is stored locally on your device only.")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                                .opacity(isAppearing ? 1.0 : 0.0)
-                                .animation(AppAnimation.spring.delay(0.5), value: isAppearing)
-                        }
-                        
-                        Spacer(minLength: 40)
-                        
-                        // Save Button
-                        Button(action: saveAndDismiss) {
-                            HStack(spacing: 12) {
-                                if isSaving {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                        .scaleEffect(0.8)
-                                }
-                                
-                                Text(isSaving ? "Saving..." : "Save")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(primaryPurple)
-                            .cornerRadius(12)
-                            .scaleEffect(isSaving ? 0.98 : 1.0)
-                            .animation(.spring(response: 0.3), value: isSaving)
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 24)
-                        .opacity(isAppearing ? 1.0 : 0.0)
-                        .offset(y: isAppearing ? 0 : 30)
-                        .animation(AppAnimation.spring.delay(0.6), value: isAppearing)
-                        
-                        // Add extra padding at the bottom to prevent content from being hidden by keyboard
-                        Spacer(minLength: keyboardHeight > 0 ? keyboardHeight - 100 : 0)
-                    }
-                    .padding(.top, 20)
-                    .padding(.bottom, 20)
-                }
             }
-            .navigationBarItems(trailing: Button(action: {
-                dismiss()
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 20))
+            
+            if isTextFieldFocused {
+                Button("Done") {
+                    isTextFieldFocused = false
+                }
+                .foregroundColor(primaryPurple)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 8)
+            }
+            
+            Text("Your information is stored locally on your device and used to enhance your dream analysis.")
+                .font(.caption)
                     .foregroundColor(.secondary)
-            })
-            .onAppear {
-                // Trigger appearance animations with minimal delay to reduce lag
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    isAppearing = true
-                }
-                
-                // Delay auto-focus slightly to ensure view is fully loaded
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    isTextFieldFocused = true
-                }
-                
-                // Set up keyboard notifications
-                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
-                    if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                        keyboardHeight = keyboardFrame.height
-                    }
-                }
-                
-                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
-                    keyboardHeight = 0
-                }
-            }
-            .onDisappear {
-                // Clean up notifications
-                NotificationCenter.default.removeObserver(self)
-            }
-            // Disable automatic keyboard avoidance to handle it manually
-            .ignoresSafeArea(.keyboard, edges: .bottom)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 16)
         }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+        .padding(.bottom, keyboardHeight > 0 ? keyboardHeight - 120 : 0) // Adjust for keyboard
+    }
+    
+    // MARK: - Helper Methods
+    
+    // Generic function to toggle selection for any option type
+    private func toggleSelection<T: Hashable>(_ option: T, in set: inout Set<T>) {
+        if set.contains(option) {
+            set.remove(option)
+        } else {
+            set.insert(option)
+        }
+        // Add haptic feedback
+        HapticManager.shared.light()
     }
     
     private func saveAndDismiss() {
-        // First dismiss keyboard
+        // First dismiss keyboard if active
         isTextFieldFocused = false
         
         // Show saving animation
@@ -520,17 +917,108 @@ struct BiographyInputView: View {
         // Give haptic feedback
         HapticManager.shared.success()
         
-        // Simulate a brief saving process
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { // Reduced from 0.6 to 0.4 for better responsiveness
-            // Save biography
-            BiographyService.shared.saveBiography(biographyText)
+        // Update notes in biography
+        biography.additionalNotes = additionalNotes
+        
+        // Save to BiographyService
+        BiographyService.shared.saveStructuredBiography(biography)
+        
+        // Generate and save text format for compatibility
+        let summaryText = biography.getSummary()
+        BiographyService.shared.saveBiography(summaryText)
             
             // Update parent state
-            parentBiography = biographyText
+        parentBiography = summaryText
             
             // Dismiss the sheet
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             dismiss()
         }
+    }
+}
+
+// MARK: - Helper Components
+
+struct CheckboxRow: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    @Environment(\.colorScheme) var colorScheme
+    private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
+    private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 16))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(isSelected ? primaryPurple : Color.gray, lineWidth: 1.5)
+                        .frame(width: 22, height: 22)
+                    
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(primaryPurple)
+                            .frame(width: 22, height: 22)
+                        
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? 
+                         lightPurple.opacity(0.3) : 
+                         (colorScheme == .dark ? Color(.systemGray5) : Color.white))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isSelected ? primaryPurple : Color.clear, lineWidth: 1)
+            )
+        }
+    }
+}
+
+// Progress bar component (reused from BiorythmAnalysisFlow)
+struct ProgressBar: View {
+    let currentStep: Int
+    let totalSteps: Int
+    
+    private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
+    private let lightPurple = Color(red: 230/255, green: 230/255, blue: 250/255)
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // Background track
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.systemGray5))
+                    .frame(width: geometry.size.width, height: 8)
+                
+                // Filled portion
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [primaryPurple, primaryPurple.opacity(0.7)]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: min(CGFloat(currentStep) / CGFloat(totalSteps) * geometry.size.width, geometry.size.width), height: 8)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
+            }
+        }
+        .frame(height: 8)
     }
 }
 
@@ -2227,7 +2715,11 @@ struct JournalView: View {
                             Text("Your Biography")
                                     .font(.title3)
                                     .fontWeight(.semibold)
-                            if userBiography.isEmpty {
+                            
+                            // Get structured biography
+                            let structuredBiography = BiographyService.shared.getStructuredBiography()
+                            
+                            if structuredBiography.isEmpty && userBiography.isEmpty {
                                 Text("Adding a biography will help personalize your dream interpretations")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
@@ -2245,11 +2737,80 @@ struct JournalView: View {
                     .padding(.vertical, 16)
                         
                     // Display biography summary if exists
-                    if !userBiography.isEmpty {
+                    let structuredBiography = BiographyService.shared.getStructuredBiography()
+                    if !structuredBiography.isEmpty || !userBiography.isEmpty {
                         Divider()
                             .background(lightPurple)
                             .padding(.horizontal, 16)
                         
+                        if !structuredBiography.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                // Display structured information by category
+                                if !structuredBiography.lifestyle.isEmpty {
+                                    BiographyCategoryView(
+                                        icon: "briefcase.fill", 
+                                        title: "Lifestyle",
+                                        items: structuredBiography.lifestyle.map { $0.rawValue }
+                                    )
+                                }
+                                
+                                if !structuredBiography.sleepHabits.isEmpty {
+                                    BiographyCategoryView(
+                                        icon: "bed.double.fill", 
+                                        title: "Sleep Habits",
+                                        items: structuredBiography.sleepHabits.map { $0.rawValue }
+                                    )
+                                }
+                                
+                                if !structuredBiography.personalFactors.isEmpty {
+                                    BiographyCategoryView(
+                                        icon: "person.fill", 
+                                        title: "Personality",
+                                        items: structuredBiography.personalFactors.map { $0.rawValue }
+                                    )
+                                }
+                                
+                                if !structuredBiography.healthFactors.isEmpty {
+                                    BiographyCategoryView(
+                                        icon: "heart.fill", 
+                                        title: "Health",
+                                        items: structuredBiography.healthFactors.map { $0.rawValue }
+                                    )
+                                }
+                                
+                                if !structuredBiography.dailyActivities.isEmpty {
+                                    BiographyCategoryView(
+                                        icon: "calendar.badge.clock", 
+                                        title: "Activities",
+                                        items: structuredBiography.dailyActivities.map { $0.rawValue }
+                                    )
+                                }
+                                
+                                // Display additional notes if available
+                                if !structuredBiography.additionalNotes.isEmpty {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "note.text")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(primaryPurple)
+                                            
+                                            Text("Additional Notes")
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundColor(primaryPurple)
+                                        }
+                                        
+                                        Text(structuredBiography.additionalNotes)
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.primary)
+                                            .lineLimit(3)
+                                            .padding(.top, 2)
+                                    }
+                                    .padding(.horizontal, 16)
+                                }
+                            }
+                            .padding(.vertical, 12)
+                        } else if !userBiography.isEmpty {
+                            // For backward compatibility, show legacy format if no structured data
                         Text(userBiography)
                             .font(.system(size: 14))
                             .foregroundColor(.primary)
@@ -2257,6 +2818,7 @@ struct JournalView: View {
                             .multilineTextAlignment(.leading)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
+                        }
                     }
                     
                     Divider()
@@ -2269,9 +2831,9 @@ struct JournalView: View {
                         showingBiographyInput = true
                     } label: {
                             HStack(spacing: 8) {
-                            Image(systemName: userBiography.isEmpty ? "pencil" : "pencil.line")
+                            Image(systemName: structuredBiography.isEmpty && userBiography.isEmpty ? "pencil" : "pencil.line")
                                     .font(.system(size: 16, weight: .semibold))
-                            Text(userBiography.isEmpty ? "ADD BIOGRAPHY" : "EDIT BIOGRAPHY")
+                            Text(structuredBiography.isEmpty && userBiography.isEmpty ? "ADD BIOGRAPHY" : "EDIT BIOGRAPHY")
                                     .font(.system(size: 16, weight: .semibold))
                             }
                             .foregroundColor(primaryPurple)
@@ -2846,6 +3408,110 @@ struct JournalView: View {
         return dreams.filter { dream in
             calendar.isDate(dream.createdAt, inSameDayAs: date)
         }.count
+    }
+}
+
+// MARK: - Helper Views
+struct BiographyCategoryView: View {
+    let icon: String
+    let title: String
+    let items: [String]
+    
+    // Add color definition
+    private let primaryPurple = Color(red: 147/255, green: 112/255, blue: 219/255)
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Category header
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(primaryPurple)
+                
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(primaryPurple)
+            }
+            
+            // Flow layout for tags
+            FlowLayout(spacing: 4) {
+                ForEach(items, id: \.self) { item in
+                    Text(item)
+                        .font(.system(size: 12))
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(UIColor.systemGray6))
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+}
+
+// Flow layout to arrange items in rows
+struct FlowLayout: Layout {
+    var spacing: CGFloat
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var height: CGFloat = 0
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        
+        var rowWidth: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        
+        for size in sizes {
+            if rowWidth + size.width > width {
+                // Start a new row
+                height += rowHeight + spacing
+                rowWidth = size.width
+                rowHeight = size.height
+            } else {
+                // Add to current row
+                rowWidth += size.width + (rowWidth > 0 ? spacing : 0)
+                rowHeight = max(rowHeight, size.height)
+            }
+        }
+        
+        // Add the last row
+        if rowHeight > 0 {
+            height += rowHeight
+        }
+        
+        return CGSize(width: width, height: height)
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        
+        var rowX = bounds.minX
+        var rowY = bounds.minY
+        var rowHeight: CGFloat = 0
+        
+        for (index, subview) in subviews.enumerated() {
+            let size = sizes[index]
+            
+            if rowX + size.width > bounds.maxX {
+                // Start a new row
+                rowX = bounds.minX
+                rowY += rowHeight + spacing
+                rowHeight = size.height
+            } else {
+                // Continue in current row
+                rowHeight = max(rowHeight, size.height)
+            }
+            
+            subview.place(
+                at: CGPoint(x: rowX, y: rowY),
+                proposal: ProposedViewSize(size)
+            )
+            
+            rowX += size.width + spacing
+        }
     }
 }
 

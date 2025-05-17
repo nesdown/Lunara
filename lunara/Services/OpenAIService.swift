@@ -1,5 +1,5 @@
 import Foundation
-import os
+import os.log
 import SwiftUI
 import Models
 
@@ -128,6 +128,42 @@ class OpenAIService {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.lunara", category: "DreamService")
     private let model = "gpt-4-turbo-preview"
     
+    // Helper function to get human-readable language name
+    private func getLanguageName(from languageCode: String) -> String {
+        let locale = Locale(identifier: languageCode)
+        if let languageName = locale.localizedString(forLanguageCode: languageCode) {
+            return languageName.capitalized
+        }
+        return languageCode
+    }
+    
+    // More robust language detection with fallback
+    private func detectLanguage(from text: String) -> String {
+        // For very short texts, default to English to avoid inaccurate detection
+        if text.count < 10 {
+            return "en"
+        }
+        
+        // Use NSLinguisticTagger for language detection
+        if let detectedLanguage = NSLinguisticTagger.dominantLanguage(for: text) {
+            log("Successfully detected language: \(detectedLanguage)")
+            return detectedLanguage
+        }
+        
+        // If detection fails, attempt with a larger chunk if possible
+        if text.count > 100 {
+            let shorterText = String(text.prefix(100))
+            if let detectedLanguage = NSLinguisticTagger.dominantLanguage(for: shorterText) {
+                log("Detected language using shorter sample: \(detectedLanguage)")
+                return detectedLanguage
+            }
+        }
+        
+        // Fallback to English if detection fails
+        log("Language detection failed, defaulting to English")
+        return "en"
+    }
+    
     init() {
         // Get the API key from environment configuration
         self.apiKey = EnvironmentConfig.openAIApiKey
@@ -153,14 +189,21 @@ class OpenAIService {
         log("Input - Had Negative Emotions: \(String(describing: hadNegativeEmotions))")
         log("Input - Intensity Level: \(intensityLevel)")
         
+        // Use the enhanced language detection
+        let inputLanguage = detectLanguage(from: description)
+        let languageName = getLanguageName(from: inputLanguage)
+        log("Detected language: \(languageName) (\(inputLanguage))")
+        
         let prompt = """
         Analyze this dream and respond with ONLY a JSON object. No other text or formatting:
-
+        
         Dream Description: \(description)
         Did it wake them up: \(didWakeUp == true ? "Yes" : didWakeUp == false ? "No" : "Unknown")
         Had negative emotions: \(hadNegativeEmotions == true ? "Yes" : hadNegativeEmotions == false ? "No" : "Unknown")
         Intensity Level (1-10): \(intensityLevel)
-
+        
+        IMPORTANT: The dream is written in \(languageName) language. Your response MUST be in the SAME LANGUAGE as the dream description.
+        
         Required JSON format:
         {
             "dreamName": "A short, catchy title for the dream (max 50 characters)",
@@ -173,7 +216,7 @@ class OpenAIService {
         """
         
         let messages: [[String: Any]] = [
-            ["role": "system", "content": "You are a dream interpreter. Respond only with the exact JSON format requested. No other text or formatting."],
+            ["role": "system", "content": "You are a dream interpreter who can interpret dreams and respond in multiple languages. Respond only with the exact JSON format requested, in the SAME LANGUAGE as the user's dream description. No other text or formatting."],
             ["role": "user", "content": prompt]
         ]
         
@@ -349,8 +392,12 @@ class OpenAIService {
         
         let prompt = contentType.prompt
         
+        // Default language is English for generic content
+        let contentLanguage = "en"
+        let languageName = getLanguageName(from: contentLanguage)
+        
         let messages: [[String: Any]] = [
-            ["role": "system", "content": "You are a dream expertise assistant specializing in helping users improve their dreaming experience. Respond with a JSON object according to the specified format."],
+            ["role": "system", "content": "You are a dream expertise assistant specializing in helping users improve their dreaming experience. Respond with a JSON object according to the specified format in English."],
             ["role": "user", "content": prompt]
         ]
         

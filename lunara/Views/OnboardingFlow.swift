@@ -9,6 +9,10 @@ class OnboardingViewModel: ObservableObject {
     @Published var userName = ""
     @Published var shouldShowNotificationPermission = false
     @Published var showSubscription = false
+    @Published var showReminderTimePicker = false
+    @AppStorage("isReminderEnabled") private var isReminderEnabled = false
+    @AppStorage("reminderTime") var reminderTimeString: String = "08:00"
+    @Published var reminderDate = Calendar.current.date(from: DateComponents(hour: 8, minute: 0)) ?? Date()
     
     // Animation states
     @Published var isAnimating = false
@@ -106,6 +110,21 @@ class OnboardingViewModel: ObservableObject {
             animation: .pulse
         ),
         
+        // NEW PAGE: Dream Logging Discipline (Feature) with notification permission
+        OnboardingPage(
+            type: .feature,
+            title: "The Power of Daily Logging",
+            description: "Consistently recording your dreams is key to understanding your dream patterns. Regular logging significantly improves your recall ability and leads to deeper insights.",
+            imageName: "clock.badge.checkmark.fill",
+            backgroundElements: [
+                BackgroundElement(imageName: "bell.fill", size: 26, position: .topTrailing, offset: CGPoint(x: -40, y: 130)),
+                BackgroundElement(imageName: "calendar.badge.clock", size: 28, position: .bottomLeading, offset: CGPoint(x: 50, y: -120))
+            ],
+            animation: .pulse,
+            showNotificationPrompt: true,
+            showReminderSetting: true
+        ),
+        
         // Page 7: Personalization (Feature/Input)
         OnboardingPage(
             type: .nameInput,
@@ -189,6 +208,12 @@ class OnboardingViewModel: ObservableObject {
             return
         }
         
+        // If we're on the reminder setting page and haven't shown it yet
+        if pages[currentPage].showReminderSetting && !showReminderTimePicker && shouldShowNotificationPermission {
+            showReminderTimePicker = true
+            return
+        }
+        
         // If we're on the last page
         if currentPage == pages.count - 1 {
             // Complete onboarding
@@ -223,16 +248,87 @@ class OnboardingViewModel: ObservableObject {
         
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             DispatchQueue.main.async {
-                // Move to the next page after requesting permission
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    self.currentPage += 1
-                }
-                
-                // Reset animation states for new page
-                self.resetAnimationStates()
-                
                 // Save notification preference
                 UserDefaults.standard.set(granted, forKey: "notificationsEnabled")
+                
+                // We don't advance to the next page here anymore
+                // Instead we'll show the reminder time picker if permissions were granted
+                if granted {
+                    self.isReminderEnabled = true
+                }
+            }
+        }
+    }
+    
+    func saveReminderTime() {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+        reminderTimeString = timeFormatter.string(from: reminderDate)
+        
+        // Schedule the notification
+        if isReminderEnabled {
+            scheduleDreamReminders()
+        }
+        
+        // After setting up reminders, move to the next page
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            currentPage += 1
+        }
+        
+        // Reset animation states for new page
+        resetAnimationStates()
+    }
+    
+    // Function to schedule daily notifications
+    private func scheduleDreamReminders() {
+        guard isReminderEnabled else { return }
+        
+        // Create reminder text options
+        let reminderTexts = [
+            "Good morning! Remember any dreams last night? Take a moment to record them while they're still fresh.",
+            "Rise and shine! Did you have any interesting dreams? Open Lunara to log them before they fade away.",
+            "Morning! Your dream journal is waiting for today's entry. What adventures did your mind take you on?",
+            "Hey dreamer! Time to capture those nighttime thoughts before they disappear. Open Lunara now."
+        ]
+        
+        // Extract hour and minute components from the selected date
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: reminderDate)
+        let minute = calendar.component(.minute, from: reminderDate)
+        
+        // Set up notification content
+        let notificationCenter = UNUserNotificationCenter.current()
+        
+        // Create a date component for the notification
+        var dateComponents = DateComponents()
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+        
+        // Create the trigger (repeating daily)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        // Choose one reminder text randomly for consistency
+        let randomIndex = Int.random(in: 0..<reminderTexts.count)
+        let reminderText = reminderTexts[randomIndex]
+        
+        // Create the content
+        let content = UNMutableNotificationContent()
+        content.title = "Dream Journal Reminder"
+        content.body = reminderText
+        content.sound = UNNotificationSound.default
+        content.badge = 1
+        
+        // Create the request with a single identifier
+        let request = UNNotificationRequest(
+            identifier: "dreamDailyReminder",
+            content: content,
+            trigger: trigger
+        )
+        
+        // Add the request to the notification center
+        notificationCenter.add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error)")
             }
         }
     }
@@ -330,6 +426,7 @@ struct OnboardingPage {
     var quizType: QuizType = .none
     var animation: OnboardingAnimation = .float
     var showNotificationPrompt: Bool = false
+    var showReminderSetting: Bool = false
     var showSubscriptionButton: Bool = false
 }
 
@@ -341,8 +438,8 @@ struct OnboardingFlow: View {
     var body: some View {
         ZStack {
             // Main content
-                onboardingContent
-                    .background(backgroundGradient)
+            onboardingContent
+                .background(backgroundGradient)
                 .fullScreenCover(isPresented: $viewModel.showSubscription) {
                     // When subscription view is dismissed
                     if viewModel.onboardingDataSaved {
@@ -351,9 +448,22 @@ struct OnboardingFlow: View {
                     }
                 } content: {
                     SubscriptionView()
-        }
-        .onChange(of: isNameFieldFocused) { _, isFocused in
-            viewModel.isTextFieldFocused = isFocused
+                }
+                .sheet(isPresented: $viewModel.showReminderTimePicker) {
+                    // After setting the reminder time
+                    if viewModel.shouldShowNotificationPermission {
+                        ReminderTimePickerView(
+                            isPresented: $viewModel.showReminderTimePicker,
+                            reminderDate: $viewModel.reminderDate,
+                            reminderTimeString: $viewModel.reminderTimeString,
+                            onSave: {
+                                viewModel.saveReminderTime()
+                            }
+                        )
+                    }
+                }
+                .onChange(of: isNameFieldFocused) { _, isFocused in
+                    viewModel.isTextFieldFocused = isFocused
                 }
         }
     }

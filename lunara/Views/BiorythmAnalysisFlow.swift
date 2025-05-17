@@ -52,7 +52,7 @@ struct BiorythmAnalysisFlow: View {
                     
                     // Progress indicator
                     if !viewModel.isShowingResults && viewModel.currentStep <= 5 {
-                        ProgressBar(currentStep: viewModel.currentStep, totalSteps: 5)
+                        StepProgressBar(currentStep: viewModel.currentStep, totalSteps: 5)
                             .padding(.horizontal)
                             .padding(.bottom, 12)
                     }
@@ -927,7 +927,7 @@ struct BiorythmAnalysisFlow: View {
 }
 
 // MARK: - Progress Bar
-struct ProgressBar: View {
+struct StepProgressBar: View {
     let currentStep: Int
     let totalSteps: Int
     

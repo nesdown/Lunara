@@ -625,36 +625,36 @@ struct ProfileView: View {
         // Set up notification content
         let notificationCenter = UNUserNotificationCenter.current()
         
-        // Schedule notifications for the next 30 days with rotating messages
-        for day in 0..<30 {
-            // Create a date component for the notification
-            var dateComponents = DateComponents()
-            dateComponents.hour = hour
-            dateComponents.minute = minute
-            
-            // Create the trigger
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-            
-            // Create the content with a rotating message
-            let reminderText = reminderTexts[day % reminderTexts.count]
-            let content = UNMutableNotificationContent()
-            content.title = "Dream Journal Reminder"
-            content.body = reminderText
-            content.sound = UNNotificationSound.default
-            content.badge = 1
-            
-            // Create the request
-            let request = UNNotificationRequest(
-                identifier: "dreamReminder-\(day)",
-                content: content,
-                trigger: trigger
-            )
-            
-            // Add the request to the notification center
-            notificationCenter.add(request) { error in
-                if let error = error {
-                    print("Error scheduling notification: \(error)")
-                }
+        // Create a date component for the notification
+        var dateComponents = DateComponents()
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+        
+        // Create the trigger (repeating daily)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        // Choose one reminder text randomly for consistency
+        let randomIndex = Int.random(in: 0..<reminderTexts.count)
+        let reminderText = reminderTexts[randomIndex]
+        
+        // Create the content
+        let content = UNMutableNotificationContent()
+        content.title = "Dream Journal Reminder"
+        content.body = reminderText
+        content.sound = UNNotificationSound.default
+        content.badge = 1
+        
+        // Create the request with a single identifier
+        let request = UNNotificationRequest(
+            identifier: "dreamDailyReminder",
+            content: content,
+            trigger: trigger
+        )
+        
+        // Add the request to the notification center
+        notificationCenter.add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error)")
             }
         }
     }
@@ -667,7 +667,7 @@ struct ProfileView: View {
         notificationCenter.getPendingNotificationRequests { requests in
             // Filter out the dream reminder notifications
             let dreamReminderIds = requests
-                .filter { $0.identifier.hasPrefix("dreamReminder") }
+                .filter { $0.identifier.hasPrefix("dreamReminder") || $0.identifier == "dreamDailyReminder" }
                 .map { $0.identifier }
             
             // Remove the dream reminder notifications
