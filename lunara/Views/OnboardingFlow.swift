@@ -125,6 +125,19 @@ class OnboardingViewModel: ObservableObject {
             showReminderSetting: true
         ),
         
+        // NEW PAGE: Dream Streaks (Feature) explaining the streaks system
+        OnboardingPage(
+            type: .feature,
+            title: "Build Your Dream Streak",
+            description: "Track your consistency with our streak system. Maintain your streak by logging dreams daily, and unlock special insights at 10, 21, 60, and 90 days. The longer your streak, the deeper your connection to your dream world!",
+            imageName: "flame.fill",
+            backgroundElements: [
+                BackgroundElement(imageName: "trophy.fill", size: 26, position: .topTrailing, offset: CGPoint(x: -40, y: 130)),
+                BackgroundElement(imageName: "chart.line.uptrend.xyaxis", size: 28, position: .bottomLeading, offset: CGPoint(x: 50, y: -120))
+            ],
+            animation: .float
+        ),
+        
         // Page 7: Personalization (Feature/Input)
         OnboardingPage(
             type: .nameInput,
@@ -278,54 +291,8 @@ class OnboardingViewModel: ObservableObject {
     private func scheduleDreamReminders() {
         guard isReminderEnabled else { return }
         
-        // Create reminder text options
-        let reminderTexts = [
-            "Good morning! Remember any dreams last night? Take a moment to record them while they're still fresh.",
-            "Rise and shine! Did you have any interesting dreams? Open Lunara to log them before they fade away.",
-            "Morning! Your dream journal is waiting for today's entry. What adventures did your mind take you on?",
-            "Hey dreamer! Time to capture those nighttime thoughts before they disappear. Open Lunara now."
-        ]
-        
-        // Extract hour and minute components from the selected date
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: reminderDate)
-        let minute = calendar.component(.minute, from: reminderDate)
-        
-        // Set up notification content
-        let notificationCenter = UNUserNotificationCenter.current()
-        
-        // Create a date component for the notification
-        var dateComponents = DateComponents()
-        dateComponents.hour = hour
-        dateComponents.minute = minute
-        
-        // Create the trigger (repeating daily)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        
-        // Choose one reminder text randomly for consistency
-        let randomIndex = Int.random(in: 0..<reminderTexts.count)
-        let reminderText = reminderTexts[randomIndex]
-        
-        // Create the content
-        let content = UNMutableNotificationContent()
-        content.title = "Dream Journal Reminder"
-        content.body = reminderText
-        content.sound = UNNotificationSound.default
-        content.badge = 1
-        
-        // Create the request with a single identifier
-        let request = UNNotificationRequest(
-            identifier: "dreamDailyReminder",
-            content: content,
-            trigger: trigger
-        )
-        
-        // Add the request to the notification center
-        notificationCenter.add(request) { error in
-            if let error = error {
-                print("Error scheduling notification: \(error)")
-            }
-        }
+        // Use our centralized StreakReminderService instead
+        StreakReminderService.shared.scheduleAllNotifications()
     }
     
     private func resetAnimationStates() {

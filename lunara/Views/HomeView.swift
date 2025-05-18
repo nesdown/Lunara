@@ -14,7 +14,9 @@ struct HomeView: View {
     @State private var showBiorythmAnalysis = false
     @State private var showingSubscription = false
     @State private var showingPromoModal = false
+    @State private var showMilestoneCelebration = false
     @StateObject private var subscriptionService = SubscriptionService.shared
+    @StateObject private var streakService = StreakService.shared
     
     // Button animation states
     @State private var unlockButtonScale: CGFloat = 1.0
@@ -152,6 +154,7 @@ struct HomeView: View {
             Text("\(greeting) \(emoji)")
                 .font(.title)
                 .fontWeight(.bold)
+                .lineLimit(1)
             
             // Second line: Date with lighter weight
             Text(currentDate)
@@ -159,6 +162,7 @@ struct HomeView: View {
                 .fontWeight(.regular)
                 .foregroundColor(.secondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     var body: some View {
@@ -177,461 +181,32 @@ struct HomeView: View {
                     
                     ScrollView {
                         VStack(spacing: 24) {
-                            // Dream Interpreter Card
-                            VStack(spacing: 0) {
-                                HStack(alignment: .center, spacing: 16) {
-                                    // Left part - Icon
-                                    ZStack {
-                                        Circle()
-                                            .fill(lightPurple)
-                                            .frame(width: 70, height: 70)
-                                        Image(systemName: "sparkles")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(primaryPurple)
-                                    }
-                                    
-                                    // Right part - Text
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Dream Interpreter")
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                        Text("Record and understand your dreams with AI-powered interpretation")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .lineSpacing(2)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 16)
-                                
-                                Divider()
-                                    .background(lightPurple)
-                                    .padding(.horizontal, 16)
-                                
-                                Button {
-                                    HapticManager.shared.buttonPress()
-                                    
-                                    // Button animation - enhanced shimmer effect
-                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                                        newDreamButtonScale = 0.85
-                                        newDreamButtonBrightness = 0.4
-                                        newDreamButtonBgOpacity = 1.0
-                                    }
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
-                                            newDreamButtonScale = 1.1
-                                            newDreamButtonBrightness = 0.0
-                                            newDreamButtonBgOpacity = 0.0
-                                        }
-                                        
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                                                newDreamButtonScale = 1.0
-                                            }
-                                        }
-                                    }
-                                    
-                                    handleDreamInterpreterClick()
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text("NEW DREAM ENTRY")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(primaryPurple)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                }
-                                .padding(.horizontal, 16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .fill(cardBackgroundColor.opacity(0.2))
-                                        .opacity(newDreamButtonBgOpacity)
-                                )
-                                .scaleEffect(newDreamButtonScale)
-                                .brightness(newDreamButtonBrightness)
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(cardBackgroundColor)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .strokeBorder(lightPurple, lineWidth: 1)
-                            )
-                            .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                            // Add spacing to create room between top bar and first card
+                            Spacer()
+                                .frame(height: 16)
+                            
+                            // Use helper views instead of nested modifiers
+                            dreamInterpreterCard
+                            
+                            streakProgressCard
+                            
+                            streakCalendarCard
                             
                             // Premium Features Card
                             if !subscriptionService.isSubscribed() {
-                                VStack(spacing: 0) {
-                                    HStack(alignment: .center, spacing: 16) {
-                                        // Left part - Icon
-                                        ZStack {
-                                            Circle()
-                                                .fill(lightPurple)
-                                                .frame(width: 70, height: 70)
-                                            Image(systemName: "crown.fill")
-                                                .font(.system(size: 28))
-                                                .foregroundColor(primaryPurple)
-                                        }
-                                        
-                                        // Right part - Text
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text("Premium Features")
-                                                .font(.title3)
-                                                .fontWeight(.semibold)
-                                            Text("Get unlimited dream interpretations, advanced insights, and personalized recommendations")
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-                                                .lineSpacing(2)
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 16)
-                                    
-                                    Divider()
-                                        .background(lightPurple)
-                                        .padding(.horizontal, 16)
-                                    
-                                    Button {
-                                        HapticManager.shared.buttonPress()
-                                        
-                                        // Button animation - dramatic pulse effect
-                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                                            premiumButtonScale = 0.8
-                                        }
-                                        
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
-                                                premiumButtonScale = 1.15
-                                            }
-                                            
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                                withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                                                    premiumButtonScale = 1.0
-                                                }
-                                            }
-                                        }
-                                        
-                                        showingSubscription = true
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "crown.fill")
-                                                .font(.system(size: 16, weight: .semibold))
-                                            Text("UPGRADE TO PREMIUM")
-                                                .font(.system(size: 16, weight: .semibold))
-                                        }
-                                        .foregroundColor(primaryPurple)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .scaleEffect(premiumButtonScale)
-                                }
-                                .background(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .fill(cardBackgroundColor)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .strokeBorder(lightPurple, lineWidth: 1)
-                                )
-                                .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                                premiumFeaturesCard
                             }
                             
                             // Recent Dreams Section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Recent Dreams")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                
-                                if latestDreams.isEmpty {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "moon.zzz.fill")
-                                            .font(.system(size: 32))
-                                            .foregroundColor(primaryPurple.opacity(0.5))
-                                        Text("No Dreams Yet")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 32)
-                                } else {
-                                    ForEach(latestDreams) { dream in
-                                        Button {
-                                            HapticManager.shared.itemSelected()
-                                            print("Dream selected in HomeView: \(dream.id), \(dream.dreamName)")
-                                            selectedDream = dream
-                                            showingDreamDetails = true
-                                        } label: {
-                                            HStack(spacing: 12) {
-                                                Image(systemName: getDreamIcon(for: dream.dreamName))
-                                                    .font(.system(size: 16))
-                                                    .foregroundColor(primaryPurple)
-                                                
-                                                VStack(alignment: .leading, spacing: 4) {
-                                                    Text(dream.dreamName)
-                                                        .font(.system(size: 16, weight: .medium))
-                                                        .foregroundColor(.primary)
-                                                    
-                                                    Text(formattedDate(dream.createdAt))
-                                                        .font(.system(size: 12))
-                                                        .foregroundColor(.secondary)
-                                                }
-                                                
-                                                Spacer()
-                                                
-                                                Image(systemName: "chevron.right")
-                                                    .font(.system(size: 14))
-                                                    .foregroundColor(.secondary)
-                                            }
-                                        }
-                                        if dream.id != latestDreams.last?.id {
-                                            Divider()
-                                                .background(lightPurple)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(cardBackgroundColor)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .strokeBorder(lightPurple, lineWidth: 1)
-                            )
-                            .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                            recentDreamsCard
                             
-                            // Biorythm Analysis Card
-                            VStack(spacing: 0) {
-                                HStack(alignment: .center, spacing: 16) {
-                                    // Left part - Icon
-                                    ZStack {
-                                        Circle()
-                                            .fill(lightPurple)
-                                            .frame(width: 70, height: 70)
-                                        Image(systemName: "waveform.path.ecg")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(primaryPurple)
-                                    }
-                                    
-                                    // Right part - Text
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Biorythm Analysis")
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                        Text("Understand your natural sleep cycles and optimize your rest")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .lineSpacing(2)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 16)
-                                
-                                Divider()
-                                    .background(lightPurple)
-                                    .padding(.horizontal, 16)
-                                
-                                Button {
-                                    HapticManager.shared.buttonPress()
-                                    
-                                    // Button animation - dramatic color pulse with blur
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        biorythmButtonScale = 0.85
-                                        biorythmButtonColor = Color(red: 210/255, green: 170/255, blue: 255/255)
-                                        biorythmButtonBlur = 5
-                                    }
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
-                                            biorythmButtonScale = 1.15
-                                            biorythmButtonColor = Color(red: 180/255, green: 140/255, blue: 255/255)
-                                            biorythmButtonBlur = 0
-                                        }
-                                        
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                                                biorythmButtonScale = 1.0
-                                                biorythmButtonColor = primaryPurple
-                                            }
-                                        }
-                                    }
-                                    
-                                    showBiorythmAnalysis = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "chart.bar.fill")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text("BEGIN ANALYSIS")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(biorythmButtonColor)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                }
-                                .padding(.horizontal, 16)
-                                .scaleEffect(biorythmButtonScale)
-                                .blur(radius: biorythmButtonBlur)
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(cardBackgroundColor)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .strokeBorder(lightPurple, lineWidth: 1)
-                            )
-                            .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+                            // Biorhythm Analysis Card
+                            biorhythmAnalysisCard
                             
                             // Action Buttons
-                            VStack(spacing: 16) {
-                                if !subscriptionService.isSubscribed() {
-                                    Button {
-                                        // Open premium upgrade flow or in-app purchase
-                                        HapticManager.shared.buttonPress()
-                                        
-                                        // Button animation - subtle rotation and scale effect
-                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                                            unlockButtonScale = 0.95
-                                            unlockButtonRotation = -1
-                                        }
-                                        
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                                unlockButtonScale = 1.03
-                                                unlockButtonRotation = 0.5
-                                            }
-                                            
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                                withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                                                    unlockButtonScale = 1.0
-                                                    unlockButtonRotation = 0
-                                                }
-                                            }
-                                        }
-                                        
-                                        showingSubscription = true
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "lock.open.fill")
-                                                .font(.system(size: 16, weight: .semibold))
-                                            Text("UNLOCK ALL FEATURES")
-                                                .font(.system(size: 16, weight: .semibold))
-                                        }
-                                        .foregroundColor(primaryPurple)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 24)
-                                                .strokeBorder(primaryPurple, lineWidth: 1)
-                                        )
-                                    }
-                                    .scaleEffect(unlockButtonScale)
-                                    .rotationEffect(.degrees(unlockButtonRotation))
-                                }
-                                
-                                // Rate Us button - only show if user hasn't rated the app yet
-                                if !RatingService.shared.hasUserRatedApp() {
-                                    Button {
-                                        // Request app store review
-                                        HapticManager.shared.buttonPress()
-                                        
-                                        // Button animation - subtle press with fade
-                                        withAnimation(.easeOut(duration: 0.15)) {
-                                            rateButtonScale = 0.97
-                                            rateButtonOpacity = 0.85
-                                            rateButtonOffset = 0
-                                        }
-                                        
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                                                rateButtonScale = 1.02
-                                                rateButtonOpacity = 1.0
-                                            }
-                                            
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-                                                    rateButtonScale = 1.0
-                                                }
-                                            }
-                                        }
-                                        
-                                        // Use our RatingService for consistent tracking
-                                        RatingService.shared.requestSystemReview()
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "star.bubble.fill")
-                                                .font(.system(size: 16, weight: .semibold))
-                                            Text("RATE US ON THE APP STORE")
-                                                .font(.system(size: 16, weight: .semibold))
-                                        }
-                                        .foregroundColor(Color(.systemGray))
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 24)
-                                                .strokeBorder(Color(.systemGray), lineWidth: 1)
-                                        )
-                                    }
-                                    .scaleEffect(rateButtonScale)
-                                    .offset(y: rateButtonOffset)
-                                    .opacity(rateButtonOpacity)
-                                }
-                                
-                                Button {
-                                    // Open Contact Support URL
-                                    HapticManager.shared.buttonPress()
-                                    
-                                    // Button animation - subtle press with fade
-                                    withAnimation(.easeOut(duration: 0.15)) {
-                                        contactButtonScale = 0.97
-                                        contactButtonOpacity = 0.85
-                                    }
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                                            contactButtonScale = 1.02
-                                            contactButtonOpacity = 1.0
-                                        }
-                                        
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-                                                contactButtonScale = 1.0
-                                            }
-                                        }
-                                    }
-                                    
-                                    if let url = URL(string: "https://multumgrp.tech/lunara#popup:form") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "envelope.fill")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text("CONTACT US")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(Color(.systemGray))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .strokeBorder(Color(.systemGray), lineWidth: 1)
-                                    )
-                                }
-                                .scaleEffect(contactButtonScale)
-                                .opacity(contactButtonOpacity)
-                            }
+                            actionButtonsCard
                         }
-                        .padding(16)
+                        .padding(.horizontal, 0)
                         .padding(.bottom, 100)
                     }
                 }
@@ -650,6 +225,12 @@ struct HomeView: View {
             ShortPromoView(onDismiss: {
                 showingPromoModal = false
             })
+        }
+        .fullScreenCover(isPresented: $showMilestoneCelebration) {
+            MilestoneCelebrationView(
+                isPresented: $showMilestoneCelebration,
+                milestone: streakService.unlockedMilestone
+            )
         }
         .fullScreenCover(isPresented: $showingDreamDetails, onDismiss: {
             print("Dream details dismissed in HomeView")
@@ -687,6 +268,15 @@ struct HomeView: View {
         }
         .onAppear {
             loadLatestDreams()
+            
+            // Check if a streak milestone has been achieved
+            if streakService.streakComplete && 
+               !streakService.hasMilestoneBeenShown(milestone: streakService.unlockedMilestone) {
+                // Show milestone celebration with a slight delay for better UX
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showMilestoneCelebration = true
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .dreamsSaved)) { _ in
             loadLatestDreams()
@@ -742,6 +332,506 @@ struct HomeView: View {
             // No free attempts left, show subscription view directly
             showingSubscription = true
         }
+    }
+    
+    private var dreamInterpreterCard: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 16) {
+                // Left part - Icon
+                ZStack {
+                    Circle()
+                        .fill(lightPurple)
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 28))
+                        .foregroundColor(primaryPurple)
+                }
+                
+                // Right part - Text
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Dream Interpreter")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Record and understand your dreams with AI-powered interpretation")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineSpacing(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            
+            Divider()
+                .background(lightPurple)
+                .padding(.horizontal, 16)
+            
+            Button {
+                HapticManager.shared.buttonPress()
+                
+                // Button animation - enhanced shimmer effect
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                    newDreamButtonScale = 0.85
+                    newDreamButtonBrightness = 0.4
+                    newDreamButtonBgOpacity = 1.0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
+                        newDreamButtonScale = 1.1
+                        newDreamButtonBrightness = 0.0
+                        newDreamButtonBgOpacity = 0.0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                            newDreamButtonScale = 1.0
+                        }
+                    }
+                }
+                
+                handleDreamInterpreterClick()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("NEW DREAM ENTRY")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(primaryPurple)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+            }
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(cardBackgroundColor.opacity(0.2))
+                    .opacity(newDreamButtonBgOpacity)
+            )
+            .scaleEffect(newDreamButtonScale)
+            .brightness(newDreamButtonBrightness)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(cardBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+        .padding(.horizontal, 16)
+    }
+    
+    private var streakProgressCard: some View {
+        VStack(spacing: 0) {
+            StreakProgressBar()
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(cardBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+        .padding(.horizontal, 16)
+    }
+    
+    private var streakCalendarCard: some View {
+        VStack(spacing: 0) {
+            StreakCalendarView()
+                .onTapGesture {
+                    // Add haptic feedback when tapping the calendar
+                    HapticManager.shared.selection()
+                }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(cardBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+        .padding(.horizontal, 16)
+    }
+    
+    private var premiumFeaturesCard: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 16) {
+                // Left part - Icon
+                ZStack {
+                    Circle()
+                        .fill(lightPurple)
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(primaryPurple)
+                }
+                
+                // Right part - Text
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Premium Features")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Get unlimited dream interpretations, advanced insights, and personalized recommendations")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineSpacing(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            
+            Divider()
+                .background(lightPurple)
+                .padding(.horizontal, 16)
+            
+            Button {
+                HapticManager.shared.buttonPress()
+                
+                // Button animation - dramatic pulse effect
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                    premiumButtonScale = 0.8
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
+                        premiumButtonScale = 1.15
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                            premiumButtonScale = 1.0
+                        }
+                    }
+                }
+                
+                showingSubscription = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("UPGRADE TO PREMIUM")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(primaryPurple)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+            }
+            .padding(.horizontal, 16)
+            .scaleEffect(premiumButtonScale)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(cardBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+    }
+    
+    // Recent Dreams Card
+    private var recentDreamsCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Recent Dreams")
+                .font(.title3)
+                .fontWeight(.semibold)
+            
+            if latestDreams.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(primaryPurple.opacity(0.5))
+                    Text("No Dreams Yet")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 32)
+            } else {
+                ForEach(latestDreams) { dream in
+                    Button {
+                        HapticManager.shared.itemSelected()
+                        print("Dream selected in HomeView: \(dream.id), \(dream.dreamName)")
+                        selectedDream = dream
+                        showingDreamDetails = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: getDreamIcon(for: dream.dreamName))
+                                .font(.system(size: 16))
+                                .foregroundColor(primaryPurple)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(dream.dreamName)
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+                                
+                                Text(formattedDate(dream.createdAt))
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    if dream.id != latestDreams.last?.id {
+                        Divider()
+                            .background(lightPurple)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(cardBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+        .padding(.horizontal, 16)
+    }
+    
+    // Biorhythm Analysis Card
+    private var biorhythmAnalysisCard: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 16) {
+                // Left part - Icon
+                ZStack {
+                    Circle()
+                        .fill(lightPurple)
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.system(size: 28))
+                        .foregroundColor(primaryPurple)
+                }
+                
+                // Right part - Text
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Biorythm Analysis")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Understand your natural sleep cycles and optimize your rest")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineSpacing(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            
+            Divider()
+                .background(lightPurple)
+                .padding(.horizontal, 16)
+            
+            Button {
+                HapticManager.shared.buttonPress()
+                
+                // Button animation - dramatic color pulse with blur
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    biorythmButtonScale = 0.85
+                    biorythmButtonColor = Color(red: 210/255, green: 170/255, blue: 255/255)
+                    biorythmButtonBlur = 5
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
+                        biorythmButtonScale = 1.15
+                        biorythmButtonColor = Color(red: 180/255, green: 140/255, blue: 255/255)
+                        biorythmButtonBlur = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                            biorythmButtonScale = 1.0
+                            biorythmButtonColor = primaryPurple
+                        }
+                    }
+                }
+                
+                showBiorythmAnalysis = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("BEGIN ANALYSIS")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(biorythmButtonColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+            }
+            .padding(.horizontal, 16)
+            .scaleEffect(biorythmButtonScale)
+            .blur(radius: biorythmButtonBlur)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(cardBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .strokeBorder(lightPurple, lineWidth: 1)
+        )
+        .shadow(color: colorScheme == .dark ? Color.clear : Color.black.opacity(0.05), radius: 15, x: 0, y: 4)
+        .padding(.horizontal, 16)
+    }
+    
+    // Action Buttons Card
+    private var actionButtonsCard: some View {
+        VStack(spacing: 16) {
+            if !subscriptionService.isSubscribed() {
+                Button {
+                    // Open premium upgrade flow or in-app purchase
+                    HapticManager.shared.buttonPress()
+                    
+                    // Button animation - subtle rotation and scale effect
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                        unlockButtonScale = 0.95
+                        unlockButtonRotation = -1
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            unlockButtonScale = 1.03
+                            unlockButtonRotation = 0.5
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                                unlockButtonScale = 1.0
+                                unlockButtonRotation = 0
+                            }
+                        }
+                    }
+                    
+                    showingSubscription = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "lock.open.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("UNLOCK ALL FEATURES")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundColor(primaryPurple)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .strokeBorder(primaryPurple, lineWidth: 1)
+                    )
+                }
+                .scaleEffect(unlockButtonScale)
+                .rotationEffect(.degrees(unlockButtonRotation))
+            }
+            
+            // Rate Us button - only show if user hasn't rated the app yet
+            if !RatingService.shared.hasUserRatedApp() {
+                Button {
+                    // Request app store review
+                    HapticManager.shared.buttonPress()
+                    
+                    // Button animation - subtle press with fade
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        rateButtonScale = 0.97
+                        rateButtonOpacity = 0.85
+                        rateButtonOffset = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                            rateButtonScale = 1.02
+                            rateButtonOpacity = 1.0
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                rateButtonScale = 1.0
+                            }
+                        }
+                    }
+                    
+                    // Use our RatingService for consistent tracking
+                    RatingService.shared.requestSystemReview()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "star.bubble.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("RATE US ON THE APP STORE")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundColor(Color(.systemGray))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .strokeBorder(Color(.systemGray), lineWidth: 1)
+                    )
+                }
+                .scaleEffect(rateButtonScale)
+                .offset(y: rateButtonOffset)
+                .opacity(rateButtonOpacity)
+            }
+            
+            Button {
+                // Open Contact Support URL
+                HapticManager.shared.buttonPress()
+                
+                // Button animation - subtle press with fade
+                withAnimation(.easeOut(duration: 0.15)) {
+                    contactButtonScale = 0.97
+                    contactButtonOpacity = 0.85
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                        contactButtonScale = 1.02
+                        contactButtonOpacity = 1.0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                            contactButtonScale = 1.0
+                        }
+                    }
+                }
+                
+                if let url = URL(string: "https://multumgrp.tech/lunara#popup:form") {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "envelope.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("CONTACT US")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(Color(.systemGray))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(Color(.systemGray), lineWidth: 1)
+                )
+            }
+            .scaleEffect(contactButtonScale)
+            .opacity(contactButtonOpacity)
+        }
+        .padding(.horizontal, 16)
     }
 }
 

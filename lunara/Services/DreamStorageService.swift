@@ -18,6 +18,7 @@ class DreamStorageService {
     
     func saveDream(_ dream: DreamEntry) {
         var dreams = getAllDreams()
+        let isNewDream = !dreams.contains(where: { $0.id == dream.id })
         
         // Check if dream already exists (update)
         if let index = dreams.firstIndex(where: { $0.id == dream.id }) {
@@ -27,6 +28,11 @@ class DreamStorageService {
         }
         
         saveDreams(dreams)
+        
+        // Update streak for new dreams (not for updates)
+        if isNewDream {
+            updateStreakForNewDream()
+        }
         
         // Post notification that dreams were updated
         NotificationCenter.default.post(name: .dreamsSaved, object: nil)
@@ -39,6 +45,11 @@ class DreamStorageService {
         } catch {
             print("Error saving dreams: \(error)")
         }
+    }
+    
+    // Update streak when a new dream is logged
+    private func updateStreakForNewDream() {
+        StreakService.shared.logDreamForToday()
     }
     
     // MARK: - Retrieve Operations

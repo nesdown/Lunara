@@ -600,79 +600,13 @@ struct ProfileView: View {
     
     // Function to schedule daily notifications
     private func scheduleDreamReminders() {
-        // First cancel any existing notifications
-        cancelDreamReminders()
-        
-        guard isReminderEnabled else { return }
-        
-        // Create reminder text options
-        let reminderTexts = [
-            "Good morning! Remember any dreams last night? Take a moment to record them while they're still fresh.",
-            "Rise and shine! Did you have any interesting dreams? Open Lunara to log them before they fade away.",
-            "Morning! Your dream journal is waiting for today's entry. What adventures did your mind take you on?",
-            "Hey dreamer! Time to capture those nighttime thoughts before they disappear. Open Lunara now.",
-            "Good morning! Your dream insights await. Take a moment to record what you remember from last night.",
-            "Dreams fade quickly after waking. Open Lunara now to preserve last night's dreams.",
-            "Morning reflection time: what messages did your dreams bring last night?",
-            "Your dream journal misses you! Add today's entry while memories are still vivid."
-        ]
-        
-        // Extract hour and minute components from the selected date
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: reminderDate)
-        let minute = calendar.component(.minute, from: reminderDate)
-        
-        // Set up notification content
-        let notificationCenter = UNUserNotificationCenter.current()
-        
-        // Create a date component for the notification
-        var dateComponents = DateComponents()
-        dateComponents.hour = hour
-        dateComponents.minute = minute
-        
-        // Create the trigger (repeating daily)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        
-        // Choose one reminder text randomly for consistency
-        let randomIndex = Int.random(in: 0..<reminderTexts.count)
-        let reminderText = reminderTexts[randomIndex]
-        
-        // Create the content
-        let content = UNMutableNotificationContent()
-        content.title = "Dream Journal Reminder"
-        content.body = reminderText
-        content.sound = UNNotificationSound.default
-        content.badge = 1
-        
-        // Create the request with a single identifier
-        let request = UNNotificationRequest(
-            identifier: "dreamDailyReminder",
-            content: content,
-            trigger: trigger
-        )
-        
-        // Add the request to the notification center
-        notificationCenter.add(request) { error in
-            if let error = error {
-                print("Error scheduling notification: \(error)")
-            }
-        }
+        // Use the dedicated service instead of implementing here
+        StreakReminderService.shared.scheduleAllNotifications()
     }
     
     // Function to cancel all dream reminder notifications
     private func cancelDreamReminders() {
-        let notificationCenter = UNUserNotificationCenter.current()
-        
-        // Get all pending notification requests
-        notificationCenter.getPendingNotificationRequests { requests in
-            // Filter out the dream reminder notifications
-            let dreamReminderIds = requests
-                .filter { $0.identifier.hasPrefix("dreamReminder") || $0.identifier == "dreamDailyReminder" }
-                .map { $0.identifier }
-            
-            // Remove the dream reminder notifications
-            notificationCenter.removePendingNotificationRequests(withIdentifiers: dreamReminderIds)
-        }
+        StreakReminderService.shared.cancelAllNotifications()
     }
 }
 

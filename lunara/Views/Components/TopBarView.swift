@@ -59,7 +59,7 @@ struct TopBarView: View {
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
             .padding(.vertical, 16)
             .background(
                 colorScheme == .dark ? Color(white: 0.15) : .white
