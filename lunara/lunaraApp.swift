@@ -19,6 +19,9 @@ struct lunaraApp: App {
     @StateObject private var ratingService = RatingService.shared
     @StateObject private var streakService = StreakService.shared
     
+    // Flag to prevent scheduling notifications multiple times during the same app session
+    private static var hasScheduledNotifications = false
+    
     init() {
         // Only register defaults if the key doesn't exist yet
         if UserDefaults.standard.object(forKey: "hasCompletedOnboarding") == nil {
@@ -69,8 +72,9 @@ struct lunaraApp: App {
     
     // Check and update streak reminders when app launches
     private func checkAndUpdateStreak() {
-        // Check if reminders are enabled and schedule them
-        if UserDefaults.standard.bool(forKey: "isReminderEnabled") {
+        // Check if reminders are enabled and schedule them only if not already done
+        if UserDefaults.standard.bool(forKey: "isReminderEnabled") && !Self.hasScheduledNotifications {
+            Self.hasScheduledNotifications = true
             StreakReminderService.shared.scheduleAllNotifications()
         }
         

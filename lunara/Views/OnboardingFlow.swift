@@ -291,8 +291,26 @@ class OnboardingViewModel: ObservableObject {
     private func scheduleDreamReminders() {
         guard isReminderEnabled else { return }
         
-        // Use our centralized StreakReminderService instead
-        StreakReminderService.shared.scheduleAllNotifications()
+        // Add a onboarding-specific flag to indicate we've scheduled notifications
+        let hasScheduledKey = "hasScheduledNotificationsInOnboarding"
+        
+        // Only schedule if we haven't already done so during this onboarding session
+        if !UserDefaults.standard.bool(forKey: hasScheduledKey) {
+            // Set the flag to prevent multiple scheduling
+            UserDefaults.standard.set(true, forKey: hasScheduledKey)
+            print("DEBUG: First time scheduling notifications in onboarding")
+            
+            // First, make sure to cancel any existing notifications
+            StreakReminderService.shared.cancelAllNotifications()
+            
+            // Wait a moment to ensure cancellation completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Use our centralized StreakReminderService to schedule
+                StreakReminderService.shared.scheduleAllNotifications()
+            }
+        } else {
+            print("DEBUG: Notifications already scheduled during onboarding, skipping")
+        }
     }
     
     private func resetAnimationStates() {

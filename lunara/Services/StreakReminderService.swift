@@ -26,13 +26,43 @@ class StreakReminderService {
         cancelAllNotifications()
         
         // Only proceed if reminders are enabled
-        guard UserDefaults.standard.bool(forKey: reminderEnabledKey) else { return }
+        guard UserDefaults.standard.bool(forKey: reminderEnabledKey) else { 
+            print("DEBUG: Reminders are disabled, not scheduling")
+            return 
+        }
         
-        // Schedule the daily reminder
-        scheduleDailyReminder()
+        // Add a timestamp-based throttle to prevent multiple calls within a short time
+        let throttleKey = "lastNotificationScheduleAttempt"
+        let now = Date()
         
-        // Check if streak is at risk and schedule alert if needed
-        checkAndScheduleStreakAlert()
+        if let lastScheduleTime = UserDefaults.standard.object(forKey: throttleKey) as? Date {
+            // Only allow scheduling once per minute to prevent duplicates
+            if now.timeIntervalSince(lastScheduleTime) < 60 {
+                print("DEBUG: Throttling notification scheduling - last attempt was too recent")
+                return
+            }
+        }
+        
+        // Record this attempt
+        UserDefaults.standard.set(now, forKey: throttleKey)
+        
+        // Get the count of pending notifications to avoid scheduling duplicates
+        checkPendingNotificationsCount { [weak self] count in
+            guard let self = self else { return }
+            
+            if count > 0 {
+                print("DEBUG: Notifications already scheduled (\(count) pending). Skipping scheduling.")
+                return
+            }
+            
+            print("DEBUG: No existing notifications found, proceeding to schedule")
+            
+            // Schedule the daily reminder
+            self.scheduleDailyReminder()
+            
+            // Check if streak is at risk and schedule alert if needed
+            self.checkAndScheduleStreakAlert()
+        }
     }
     
     // Cancel all streak-related notifications
@@ -42,6 +72,21 @@ class StreakReminderService {
             dailyReminderIdentifier,
             streakAlertIdentifier
         ])
+    }
+    
+    // Check how many pending notifications we have
+    private func checkPendingNotificationsCount(completion: @escaping (Int) -> Void) {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            // Filter to only include our app's notifications
+            let ourNotifications = requests.filter { 
+                $0.identifier == self.dailyReminderIdentifier || 
+                $0.identifier == self.streakAlertIdentifier
+            }
+            
+            DispatchQueue.main.async {
+                completion(ourNotifications.count)
+            }
+        }
     }
     
     // Check if notification permissions are granted
@@ -73,6 +118,12 @@ class StreakReminderService {
     
     // Schedule the daily dream reminder
     private func scheduleDailyReminder() {
+        // Debug: Print how many pending notifications we already have before scheduling
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let existingReminders = requests.filter { $0.identifier == self.dailyReminderIdentifier }
+            print("DEBUG: Found \(existingReminders.count) existing daily reminders before scheduling")
+        }
+        
         // Get streak information
         let streakService = StreakService.shared
         let currentStreak = streakService.currentStreak
@@ -91,6 +142,9 @@ class StreakReminderService {
               let minute = Int(components[1]) else {
             return
         }
+        
+        // Ensure there's only one daily reminder by removing any existing ones first
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [dailyReminderIdentifier])
         
         // Create date components for trigger
         var dateComponents = DateComponents()
@@ -114,6 +168,14 @@ class StreakReminderService {
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("Error scheduling daily reminder: \(error)")
+            } else {
+                print("DEBUG: Successfully scheduled daily reminder for \(hour):\(minute)")
+                
+                // Verify only one notification was scheduled
+                UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                    let dailyReminders = requests.filter { $0.identifier == self.dailyReminderIdentifier }
+                    print("DEBUG: After scheduling, found \(dailyReminders.count) daily reminders")
+                }
             }
         }
     }

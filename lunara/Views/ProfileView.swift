@@ -600,12 +600,36 @@ struct ProfileView: View {
     
     // Function to schedule daily notifications
     private func scheduleDreamReminders() {
-        // Use the dedicated service instead of implementing here
-        StreakReminderService.shared.scheduleAllNotifications()
+        print("DEBUG: Scheduling notifications from ProfileView")
+        
+        // Add a debounce mechanism to prevent multiple quick scheduling attempts
+        let profileSettingsScheduleKey = "lastProfileNotificationSchedule"
+        let now = Date()
+        
+        if let lastSchedule = UserDefaults.standard.object(forKey: profileSettingsScheduleKey) as? Date {
+            // Only allow scheduling once per 5 seconds from profile settings
+            if now.timeIntervalSince(lastSchedule) < 5.0 {
+                print("DEBUG: Throttling profile notification scheduling - attempt too soon")
+                return
+            }
+        }
+        
+        // Record this attempt
+        UserDefaults.standard.set(now, forKey: profileSettingsScheduleKey)
+        
+        // First cancel existing notifications to ensure a clean state
+        StreakReminderService.shared.cancelAllNotifications()
+        
+        // Wait a moment for cancellation to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Use the dedicated service
+            StreakReminderService.shared.scheduleAllNotifications()
+        }
     }
     
     // Function to cancel all dream reminder notifications
     private func cancelDreamReminders() {
+        print("DEBUG: Cancelling all notifications from ProfileView")
         StreakReminderService.shared.cancelAllNotifications()
     }
 }
