@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A44E7282D76849A0070F5B0 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 1A44E7272D76849A0070F5B0 /* Models */; };
+		95EEEEEA2DE44FCC00986471 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 95EEEEE92DE44FCC00986471 /* FacebookCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A44E7282D76849A0070F5B0 /* Models in Frameworks */,
+				95EEEEEA2DE44FCC00986471 /* FacebookCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,6 +145,7 @@
 			name = lunara;
 			packageProductDependencies = (
 				1A44E7272D76849A0070F5B0 /* Models */,
+				95EEEEE92DE44FCC00986471 /* FacebookCore */,
 			);
 			productName = lunara;
 			productReference = 1A8030B52D71527D000DC0D1 /* lunara.app */;
@@ -239,6 +242,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				1A44E7262D76849A0070F5B0 /* XCLocalSwiftPackageReference "lunara/Models" */,
+				95EEEEE82DE44FCC00986471 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1A8030B62D71527D000DC0D1 /* Products */;
@@ -637,10 +641,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		95EEEEE82DE44FCC00986471 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 14.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		1A44E7272D76849A0070F5B0 /* Models */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Models;
+		};
+		95EEEEE92DE44FCC00986471 /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 95EEEEE82DE44FCC00986471 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

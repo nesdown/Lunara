@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import FacebookCore
 
 // Add these keys to Info.plist:
 // NSUserTrackingUsageDescription - This identifier will be used to deliver personalized dream insights and improve your experience
@@ -14,6 +15,7 @@ import UserNotifications
 
 @main
 struct lunaraApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @StateObject private var subscriptionService = SubscriptionService.shared
     @StateObject private var ratingService = RatingService.shared
@@ -89,6 +91,24 @@ struct lunaraApp: App {
             // Milestone will be shown by HomeView when it appears
             print("Milestone \(streakService.unlockedMilestone) ready to be celebrated")
         }
+    }
+}
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+    ) -> Bool {
+        ApplicationDelegate.shared.application(
+            application,
+            didFinishLaunchingWithOptions: launchOptions
+        )
+        return true
+    }
+
+    func application(_ app: UIApplication, open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        return ApplicationDelegate.shared.application(app, open: url, options: options)
     }
 }
 
