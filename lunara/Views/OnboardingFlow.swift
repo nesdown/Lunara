@@ -1,6 +1,8 @@
 import SwiftUI
 import UserNotifications
 import StoreKit
+import AppTrackingTransparency
+import FBSDKCoreKit
 
 // MARK: - OnboardingViewModel
 class OnboardingViewModel: ObservableObject {
@@ -191,7 +193,29 @@ class OnboardingViewModel: ObservableObject {
            let recall = DreamRecall(rawValue: savedRecall) {
             dreamRecall = recall
         }
+        requestTrackingPermissionIfNeeded()
     }
+    
+    func requestTrackingPermissionIfNeeded() {
+        if #available(iOS 14, *) {
+            if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    ATTrackingManager.requestTrackingAuthorization { status in
+                        switch status {
+                        case .authorized: self.setTracking(true)
+                        @unknown default: self.setTracking(false)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    func setTracking(_ isTracking: Bool) {
+            Settings.shared.isAdvertiserTrackingEnabled = isTracking
+            Settings.shared.isAutoLogAppEventsEnabled = isTracking
+            Settings.shared.isAdvertiserIDCollectionEnabled = isTracking
+        }
     
     func completeOnboarding() {
         // Save user name
